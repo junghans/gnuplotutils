@@ -1,0 +1,392 @@
+#! /bin/bash 
+#
+# C.Junghans
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#version 0.94  17.09.07 -- added --pipe
+#version 0.95  17.09.07 -- added --range to enable obscure ranges
+#version 0.96  17.09.07 -- added --tee option
+#version 0.97  17.09.07 -- added --gversion to help confused people
+#version 0.98  01.10.07 -- change read code
+#version 0.99  09.10.07 -- bug in multi and allow piping of eps
+#version 0.100 09.10.07 -- added splitting of short options
+#version 1.0   10.10.07 -- better short opts
+#version 1.1   18.10.07 -- removed string bug
+#version 1.1.1 06.02.08 -- removed base name
+#version 1.1.2 09.04.08 -- added ymarker
+#version 1.1.3 16.04.08 -- better version system
+#version 1.1.4 01.09.08 -- added --pid
+#version 1.2.0 03.09.08 -- read from stdin is now default
+#version 1.3.0 05.09.08 -- added --replot
+#version 1.3.1 08.09.08 -- added wxt to persist terms
+#version 1.3.2 29.09.08 -- added -w options
+#version 1.3.3 13.10.08 -- added GPL header
+#version 1.3.4 15.10.08 -- corrected documentation
+#version 1.3.5 12.05.09 -- corrected --gnuplot thx to Victor
+#version 1.3.6 14.05.09 -- gplot should not be interactive
+#version 1.3.7 01.06.09 -- corrected pid things
+
+usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
+set=""
+range=""
+plot="plot"
+fct=""
+term=""
+defaultterm="postscript enhanced eps color"
+out=""
+gnuplot="gnuplot"
+print=""
+gp2eps=""
+multi=""
+pipe="no"
+data=""
+tee=""
+show_pid="no"
+replot="no"
+
+get_pids () {
+  local pgid
+  pgid="$(ps -p $$ -o pgid=)"
+  ps -o pid= -o pgid= -o cmd= | awk -v pgid="$pgid" '(($2==pgid)&&($3~/gnuplot/)){printf "%i ",$1}'
+}
+
+help () {
+cat << eof
+Single line gnuplot pipe !
+$usage
+
+OPTIONS:
+-3, --splot         Use splot instead of plot
+-f, --fct           Use function instead of file
+                    (disable buildin file check)
+-s, --set 'SET'     Setting some option (may multiple)
+-m, --ymarker NUM   Plot marker line in y dir at NUMBER
+-x, --xlabel LABEL  Set x label
+-y, --ylabel LABEL  Set y label
+-z, --zlabel LABEL  Set z label
+-t, --title  NAME   Set title
+-k, --nokey         Unset key
+-r,  -range TEXT    Set obscure range (may multiple x,y,z)
+                    (disable buildin range greping)
+-c, --command TEXT  Extra gnuplot command (unset etc.)
+-o, --output FILE   Plot to file (ignores -d)
+                    on term "$defaultterm"
+                    change with --term
+    --term TERM     Change term to TERM (only used at given -o)
+                    Default: Nothing (whatever gnuplot is using)
+    --tex           Same as --term "epslatex color"
+    --gp2eps        Same as --tex and -p with automatic -o and --to filename
+                    Useful to use with gp2eps
+    --to FILE       Same as --print but to FILE (implies -p)
+-d, --dumb          Same as  --term dump (useful for konsole)
+-w, --wxt           Same as  --term wxt (allow to rescale)
+-p, --print         Print command instead of runing gnuplot
+                    (useful for making plotfiles)
+    --gnuplot NAME  Change the gnuplot command
+                    Default: "$gnuplot"
+    --pid           Display pid of gnuplot
+-i, --pipe          Switch on reading data from STDIN by hand (useful, with --)
+    --tee           like --pipe but print also data to STDOUT
+                    (ignores --print, --to,--pid)
+    --replot        make a new plot if file is changed (does not work with --pipe)
+    --filename NAME manually give filename for replot
+--                  All following arguments are files and plot options
+                    (Ranges option will still be checked by grep, unless -r given)
+                    useful for ploting multiple files (BUT quote yourself!)
+-h, --help          Show this help
+-v, --version       Show version
+    --gversion      Show gnuplot version (may use --gnuplot before)
+
+Examples: ${0##*/} [1:2][2:3] file.d u 1:2
+          ${0##*/} file2.d w lines
+          ${0##*/} -xx data
+          ${0##*/} -o pic.eps -t "Title" file2.d w l
+	  ${0##*/} -fs log -xx [1:] x**2
+          ${0##*/} -3fs pm3d x*y w pm3d
+          ${0##*/} -- '"data" u 1:2, "data" u 1:3 w l'
+          ${0##*/} -c "unset key" data u 1:2
+          seq 1 10 | ${0##*/} -r "[:][0:12]" --tee - 't "data"'
+          seq 1 2 | gplot
+
+Send comments and bugs to: junghans@mpip-mainz.mpg.de
+eof
+}
+
+while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
+
+ #hack to split short opts
+ #no long opt and combined short opt
+ if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+    #if first short opt need argument
+    if [ "${1#-[cmorstxyz]}" != "${1}" ]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       #mind the - here !
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+
+ case $1 in 
+   -s | --set)
+     set="${set}set $2\n"
+     shift 2 ;;
+   -m | --ymarker)
+     if [ -n "$(echo "$2" | grep -e "^[-.eE[:digit:]]*$")" ]; then
+       set="${set}set arrow from $2, graph 0 to $2, graph 1 nohead lt -1 \n "
+     else
+       echo Marker argument \($2\) has to be a number
+       exit 1
+     fi
+     shift 2 ;;
+   -x | --xlabel)
+     set="${set}set xlabel \"${2}\"\n"
+     shift 2 ;;
+   -y | --ylabel)
+     set="${set}set ylabel \"${2}\"\n"
+     shift 2 ;;
+   -z | --zlabel)
+     set="${set}set ylabel \"$2\"\n"
+     shift 2 ;;
+   -t | --title)
+     set="${set}set title \"$2\"\n"
+     shift 2 ;;
+   -k | --nokey)
+     set="${set}unset key\n"
+     shift ;;
+   -r | --range)
+     range="${range}$2"
+     shift 2 ;;
+   -c | --command)
+     set="${set}$2\n"
+     shift 2 ;;
+   -o | --output)
+     out="$2"
+     #if term was not set before
+     if [ -z "$term" ]; then
+       term="$defaultterm"
+     fi
+     shift 2 ;;
+   -- )
+     multi="yes"
+     shift
+     break ;;
+   --term)
+     term="$2"
+     shift 2 ;;
+   --tee)
+     tee="yes"
+     pipe="yes"
+     shift ;;
+   --tex)
+     term="epslatex color"
+     shift ;;
+   --to)
+     print="yes"
+     to="$2"
+     shift 2 ;;
+   --gp2eps)
+     term="epslatex color"
+     print="yes"
+     gp2eps="yes"
+     shift ;;
+   -d | --dumb)
+     term="dumb"
+     shift ;;
+   -w | --wxt)
+     term="wxt"
+     shift ;;
+   -3 | --splot)
+     plot="splot"
+     shift ;;
+   -f | --fct)
+     fct="yes"
+     shift ;;
+   -p | --print)
+     print="yes"
+     shift ;;
+   --gnuplot)
+     gnuplot="$2"
+     shift 2;;
+   --pid)
+     show_pid="yes"
+     shift ;;
+   --replot)
+     replot="yes"
+     shift ;;
+   --filename)
+     file="$2"
+     shift 2;;
+   -i | --pipe)
+     pipe="yes"
+     shift ;;
+   -h | --help)
+     help
+     exit 0;;
+   -v | --version)
+     echo "${0##*/}", $(sed -ne 's/^#\(version.*\) -- .*$/\1/p' $0 | sed -n '$p') by C. Junghans
+     exit 0;;
+   --hg)
+     echo "${0##*/}: $(sed -ne 's/^#version.* -- \(.*\)$/\1/p' $0 | sed -n '$p')"
+     exit 0;;
+   --gversion)
+     echo show version | $gnuplot
+     exit 0;;
+   *)
+    echo "Unknown option '$1'" >&2
+    exit 1;;
+ esac
+done
+
+# if frange is not already defined check for first char, [ which implies a range
+if [ -z "$range" ] && [ "${1#'['}" != "$1" ]; then
+ if [ "$plot" = "plot" ]; then
+   #check for [??:??] or [??:??]{??:??}
+   if [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,2\}$')" ]; then
+     range=$1
+     shift
+   else
+     echo "Range ('$1') has to be in form [??:??]\<[??:??]\>"
+     exit
+   fi
+ fi
+ if [ "$plot" = "splot" ]; then
+   #check for [??:??] or [??:??]{??:??} or [??:??]{??:??}[??:??]
+   if [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,3\}$')" ]; then
+     range=$1
+     shift
+   else
+     echo "Range ('$1') has to be in form [??:??]\<[??:??]\>\<[??:??]\>"
+     exit
+   fi
+ fi
+fi
+
+#no agrument left -> read from pipe (add argument -)
+[[ -z "$1" ]] && set -- "-"
+
+#multiple files - take the rest as gpcommand
+if [ "$multi" = "yes" ]; then
+  gpcommand="$*"
+else
+  file=$1
+  shift
+  [[ "$file" = "-" ]] && pipe="yes"
+  if [ "$fct" = "yes" ]; then
+    gpcommand="$file $*"
+  else
+    #if function are disabled, check for file
+    if [ "$pipe" != "yes" ]; then
+      if [ ! -r "$file" ]; then
+         echo "file '$file' not found !"
+         echo Remaining argument MUST be a file or use --fct
+         exit
+      fi
+      #create name of output name out of data filename, if no -o given
+      [[ -n "$gp2eps" ]] && [[ -z "$out" ]] && out="${file%.*}_pre.eps"
+      #create name of to name out of data filename, if no --to given
+      [[ -n "$gp2eps" ]] && [[ -z "$to" ]] && to="${file%.*}.gp"
+    fi
+    #add " to filename
+    gpcommand="\"$file\" $*"
+  fi
+fi
+
+#for gp2eps: if no -o and --to was given, when using -- or pipe
+if [ -n "$gp2eps" ] && ( [ -z "$to" ] || [ -z "$out" ] ); then
+  echo Missing --to or -o option for --gp2eps
+  echo Options like --fct, --, --pipe disable automatic names !
+  exit 1
+fi
+
+#set output
+[[ -n "$out" ]] && set="${set}set output \"$out\"\n"
+
+#set term
+[[ -n "$term" ]] && set="set terminal $term\n${set}"
+
+#if term is X11, aqua or defautlt gnuplot has to persist
+if [ "$term" = "x11" ] || [ "$term" = "wxt" ] || [ "$term" = "aqua" ] || [ -z "$term" ]; then
+   gnuplot="$gnuplot -persist"
+fi
+
+#add - as file to gpcommand and readin data
+if [ "$pipe" = "yes" ]; then
+  #multi disable all buildin features
+  data="#BEGIN DATA"
+  while read -r; do
+    data="${data}\n${REPLY}"
+  done
+  data="${data}\n#END DATA"
+fi
+#build shell command
+command="${set}$plot $range $gpcommand"
+
+if [ "$replot" = "yes" ]; then
+   if [ -z "$file" ]; then
+      echo filename unkown for replot - use --filename
+      exit 1
+   fi
+   if [ ! -r $file ]; then
+      echo "file '$file' not found"
+      exit 1
+   fi
+   if [ "$pipe" = "yes" ]; then
+      echo replot does not work with pipe
+      exit 1
+   fi
+   if [ "$print" = "yes" ]; then
+      echo replot does not work with --print
+      exit 1
+   fi
+   let modtime=$(ls -l --time-style=+%s ${file} | awk '{print $6}' )
+fi
+
+#Run gnuplot if no -p given
+if [ "$tee" = "yes" ] || [ -z "$print" ]; then
+  echo -e "${command}\n${data}" | $gnuplot
+  if [ $? -ne 0 ]; then
+    echo gnuplot finished with error !
+    exit
+  fi
+  if [ "$tee" = "yes" ]; then
+    #print and delete first line ("\n")
+    echo -e "$data" | sed '1d;$d'
+  elif [ "$show_pid" = "yes" ]; then
+    get_pids
+  fi
+#print
+else
+  # to file or to stdout ?
+  if [ -z "$to" ]; then
+    echo -e "$command\n$data"
+  else
+    echo -e "$command\n$data" > $to
+  fi
+fi
+
+if [ "$replot" = "yes" ]; then
+   pid=$(get_pids)
+   while true; do
+      sleep 1
+      let newmodtime=$(ls -l --time-style=+%s ${file} | awk '{print $6}' )
+      if [ $newmodtime -ne $modtime ]; then
+         kill $pid
+         modtime=$newmodtime
+         echo -e "${command}" | $gnuplot
+         pid=$(get_pids)
+      fi 
+   done
+fi

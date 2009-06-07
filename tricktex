@@ -1,0 +1,292 @@
+#! /usr/bin/perl -w
+#
+# C. Junghans
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+#version 0.42 added --keep option
+#version 0.43 added --pic option
+#version 0.44 added --pdf option
+#version 0.45 added -gv option
+#version 0.46 change style to test as standard
+#version 0.47 change --pic output to .ps
+#version 0.48 added -w option
+#version 0.49 better short opts
+#version 0.50 added -watch to gv
+#version 0.51 removed Base name
+#version 0.52 added --rotate
+#version 0.53, 18.04.08 -- added --tight and change default behavious
+#version 0.54, 25.04.08 -- better version
+#version 0.55, 13.10.08 -- added GPL header
+
+use strict;
+
+$_=$0;
+s#^.*/##;
+my $progname=$_;
+my $usage="Usage: $progname [OPTIONS] tex code\nHelp with --help\n";
+my $output="myfile";
+my $ending="eps";
+my $outputpattern="$output\.$ending";
+my @packages;
+my $equ=undef;
+my $keep=undef;
+my $pic=undef;
+my $pdf=undef;
+my $tight=undef;
+my $nrpic=0;
+my $gv=undef;
+my $textwidth=1.0;
+my $angle=0;
+
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
+{
+        if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
+           $_=shift(@ARGV);
+           if ( $_ =~ /^-[opw]/ ) {
+              unshift(@ARGV,substr($_,0,2),substr($_,2));
+           }
+           else{
+              unshift(@ARGV,substr($_,0,2),"-".substr($_,2));
+           }
+        }
+	if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help"))
+	{
+		print <<END;
+$usage
+Make a eps or ps file out of a tex code
+
+Options:
+-v, --version         Prints version
+-h, --help            Show this help message
+-p NAME               Add package
+-o FILE               Give the output filename
+                      default: $output.$ending
+--equ                 Run in equation mode
+--keep                Do not delete the tex file
+--pic                 Run in Picture mode
+                      Change default output to $output.ps
+-t, --tight           tight bounding (uses bbbox_add.pl)
+-w, --width NUMBER    Change textwidth of the pictures
+                      (implies --pic)
+                      default: $textwidth (*\\textwidth)
+-r, --rotate          rotate pics by 90 degree
+--pdf                 Also build pdf
+--gv                   Run gv at the end
+
+Examples: $progname --equ -o test.eps \'\\omega\'
+          $progname --equ  -o test \\\\omega
+          $progname --equ -p color '\\textcolor{blue}{\\theta}\'
+          $progname hallo
+          $progname --pic *.eps
+
+Send comments and bugs to: junghans[at]mpip-mainz.mpg.de
+END
+		exit;
+	}
+	elsif ($ARGV[0] eq "-o")
+	{
+		shift(@ARGV);
+		$output=shift(@ARGV);
+		my $pattern;
+		if ( $output =~ /\.(.*?)$/)
+		{
+			$ending=$1;
+			die "Can not handle this ending ($ending)!\n" unless (($ending eq "eps")or($ending eq "ps"));
+			$pattern="(.*?)\.$ending";
+			$outputpattern="\.$ending";
+		}
+		else
+		{
+			print "No ending given use .eps\n";
+			$pattern="(.*?)";
+			$outputpattern="";
+		}
+		if ( $output =~ /^$pattern$/ )
+		{
+			$output=$1;
+			$outputpattern=$output.$outputpattern;
+		}
+		else
+		{
+			die "Can not determine file name\n";
+		}
+	}
+	elsif ($ARGV[0] eq "-p")
+	{
+		shift(@ARGV);
+		push(@packages,shift(@ARGV));
+	}
+	elsif ($ARGV[0] eq "--equ")
+	{
+		shift(@ARGV);
+		$equ='yes';
+	}
+	elsif ($ARGV[0] eq "--keep")
+	{
+		shift(@ARGV);
+		$keep='yes';
+	}
+	elsif ($ARGV[0] eq "--pic")
+	{
+		shift(@ARGV);
+		$pic='yes';
+		$ending="ps";
+	}
+	elsif (($ARGV[0] eq "-w") or ($ARGV[0] eq "--width"))
+	{
+		shift(@ARGV);
+		$pic='yes';
+		$ending="ps";
+		$textwidth=shift(@ARGV);
+	}
+	elsif (($ARGV[0] eq "-r") or ($ARGV[0] eq "--rotate"))
+	{
+		shift(@ARGV);
+		$pic='yes';
+		$ending="ps";
+		$angle=90;
+	}
+	elsif ($ARGV[0] eq "--pdf")
+	{
+		shift(@ARGV);
+		$pdf='yes';
+	}
+	elsif (($ARGV[0] eq "--tight")  or ($ARGV[0] eq "-t"))
+	{
+		shift(@ARGV);
+		$tight='yes';
+	}
+	elsif ($ARGV[0] eq "--gv")
+	{
+		shift(@ARGV);
+		$gv='yes';
+	}
+	elsif (($ARGV[0] eq "-v") or ($ARGV[0] eq "--version"))
+	{
+		my $version=`perl -ne 'print "\$1\n" if /^#(version .*) --/' $0 | perl -ne 'print if eof'`;
+		chomp($version);
+		print "$progname, $version  by C. Junghans\n";
+		exit;
+	}
+	elsif ($ARGV[0] eq "--hg")
+	{
+		my $message=`perl -ne 'print "\$1\n" if /^#version .* -- (.*)\$/' $0 | perl -ne 'print if eof'`;
+		chomp($message);
+		print "$progname: $message\n";
+		exit;
+	}
+	else
+	{
+		print "Unknow option '".$ARGV[0]."' ignored !\n";
+		shift(@ARGV);
+	}
+}
+
+die "${usage}Error: no tex code given\n" unless $#ARGV>-1;
+
+die "What do you want equ or pic mode?\nCheat the text mode with \$something\$ !\n" if ($pic and $equ);
+
+open(FILE,"> $output.tex") or
+	die "Error at opening file\n";
+
+print FILE '\documentclass[10pt,a4paper,onecolumn]{article}'."\n";
+print FILE '\usepackage[latin1]{inputenc}'."\n";
+print FILE '\usepackage{german}'."\n";
+print FILE '\usepackage{amsmath}'."\n" if ($equ);
+print FILE '\usepackage{graphicx}'."\n" if ($pic);
+foreach (@packages){
+	print FILE '\usepackage{'.$_."}\n";
+}
+print FILE '\begin{document}'."\n";
+print FILE '\pagestyle{empty}'."\n";
+print FILE '\noindent'."\n";
+print FILE '\['."\n" if($equ);
+if ($pic)
+{
+	foreach (@ARGV)
+	{
+		if ($_ !~ /$outputpattern/ )
+		{
+			if ( $_ =~ /\.(eps|ps)$/ )
+			{
+				if ( -r $_ )
+				{
+					print FILE '\includegraphics[angle='.$angle.',width='.$textwidth.'\textwidth]{'.$_."}\n";
+					$nrpic++;
+				}
+				else
+				{
+					print "Given picture is not readable -> ignored!\n";
+				}
+			}
+			else
+			{
+				print "Given picture should end with eps or ps -> ignored !\n";
+			}
+		}
+		else
+		{
+			print "Given picture is equal to output file -> ignored!\n";
+		}
+	}
+}
+else
+{
+	foreach (@ARGV)
+	{
+		print FILE $_." ";
+	}
+	print FILE "\n";
+}
+print FILE '\]'."\n" if ($equ);
+print FILE '\end{document}'."\n";
+close(FILE);
+if ( ($pic) and ($nrpic==0))
+{
+	unlink("$output.tex") unless $keep;
+	die "Picture mode and no valid picture found -> exit!\n";
+}
+$_=system("latex -halt-on-error $output.tex");
+unlink("$output.tex") unless $keep;
+unlink("$output.aux");
+unlink("$output.log");
+die "Error at running latex\n" if $_;
+if ($tight)
+{
+	die "Error at running dvips\n" if system("dvips -E $output.dvi -o $output.$ending");
+}
+else
+{
+	#no tight box for multiple pics
+	die "Error at running dvips\n" if system("dvips $output.dvi -o $output.$ending");
+}
+unlink("$output.dvi");
+if ($pdf)
+{
+	die "Error at running ps2pdf\n" if system("ps2pdf $output.$ending");
+}
+
+if ($tight)
+{
+	#no tight box for multiple pics
+	die "Error at runing bbbox_add.pl\n" if system("bbox_add.pl $output.$ending");
+}
+
+if ($gv)
+{
+	die "Error at runing gv\n" if system("gv -watch $output.$ending &");
+}
+#fs md5sum af0643a371fc90f4ccc23f8488a51c24

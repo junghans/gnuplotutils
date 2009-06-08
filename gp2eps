@@ -41,6 +41,7 @@
 #version 1.7.8, 08.07.08 -- fixes a bug when calling itself and comment lines in gp file
 #version 1.7.9, 13.10.08 -- added GPL header
 #version 1.7.10, 01.06.09 -- improved docu
+#version 1.7.11, 08.06.09 -- use bbox_add.pl from cwd, if it exists
 use strict;
 
 $_=$0;
@@ -59,6 +60,7 @@ my $gpown=10;
 my $nobbfix=undef;
 my $debug=undef;
 my $gnuplot="gnuplot";
+my $bbox_add="bbox_add.pl";
 
 my $oldcommandline=' ';
 my $bbrescale=undef;
@@ -395,7 +397,8 @@ unlink($texname.".eps") if ($gpname and !$debug);
 
 unless ($nobbfix)
 {
- 	die "Error at runing bbbox_add.pl\n" if system("bbox_add.pl --keep ".$outname.".eps");
+	$bbox_add="./$bbox_add" if ( -f "$bbox_add" );
+ 	die "Error at runing $bbox_add\n" if system("$bbox_add --keep $outname.eps");
 	#calculate fontsize in pic without white border, do this only one time :-)
 	unless ($bbrescale)
 	{

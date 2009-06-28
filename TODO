@@ -1,0 +1,23 @@
+Already in order:
+* manpages
+  * using asciidoc
+  * add html manpages to googlecode
+* autotools
+  * check for perl, sed, awk, latex, dvips
+  * make install
+* make a release -> 1.0
+* README 
+  * some intro words
+* examples -> demo
+* doc
+  * in latex
+  * with some nice plots from papers (votca)
+* replace bbox_add by internal function
+* gp2eps
+  * add tex2eps function (--tex option + from $0 guess)
+  * --tex = --notexheader + --nobbfix
+  * more terminal (like tkiz)
+  * add option to calc old/newdelta out of dy ($4-$2) instead of dx ($3-$1)
+  * add --multiplot option (on top, side by side, inlay)
+  * build-in gp2eps2 stuff
+

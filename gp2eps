@@ -42,6 +42,7 @@
 #version 1.7.9, 13.10.08 -- added GPL header
 #version 1.7.10, 01.06.09 -- improved docu
 #version 1.7.11, 08.06.09 -- use bbox_add.pl from cwd, if it exists
+#version 1.7.12, 30.06.09 -- added --gnuplot to oldcommandline 
 use strict;
 
 $_=$0;
@@ -62,7 +63,7 @@ my $debug=undef;
 my $gnuplot="gnuplot";
 my $bbox_add="bbox_add.pl";
 
-my $oldcommandline=' ';
+my $oldcommandline='';
 my $bbrescale=undef;
 my $gv=undef;
 
@@ -126,7 +127,7 @@ END
 	{
 		shift(@ARGV);
 		$outname=shift(@ARGV);
-		$oldcommandline=" -o ".$outname.$oldcommandline;
+		$oldcommandline.=" -o $outname";
 	}
 	elsif (($ARGV[0] eq "-v") or ($ARGV[0] eq "--version"))
 	{
@@ -146,7 +147,7 @@ END
 	{
 		$quiet='yes';
 		shift(@ARGV);
-		$oldcommandline=" -q".$oldcommandline;
+		$oldcommandline.=" -q";
 	}
 	elsif (($ARGV[0] eq "-s") or ($ARGV[0] eq "--scale"))
 	{
@@ -157,31 +158,31 @@ END
 	{
 		shift(@ARGV);
 		$fs=shift(@ARGV);
-		$oldcommandline=" -f ".$fs.$oldcommandline;
+		$oldcommandline.=" -f $fs";
 	}
 	elsif (($ARGV[0] eq "-p") or ($ARGV[0] eq "--pointsize"))
 	{
 		shift(@ARGV);
 		$ps=shift(@ARGV);
-		$oldcommandline=" -p ".$ps.$oldcommandline;
+		$oldcommandline.=" -p $ps";
 	}
 	elsif (($ARGV[0] eq "-r") or ($ARGV[0] eq "--ratioscale"))
 	{
 		shift(@ARGV);
 		$rs=shift(@ARGV);
-		$oldcommandline=" -r ".$rs.$oldcommandline;
+		$oldcommandline.=" -r $rs";
 	}
 	elsif ($ARGV[0] eq "--gv")
 	{
 		shift(@ARGV);
 		$gv="yes";
-		#$oldcommandline=" -gv ".$oldcommandline;
+		#$oldcommandline.=" -gv";
 	}
 	elsif ($ARGV[0] eq "--gpown")
 	{
 		shift(@ARGV);
 		$gpown=shift(@ARGV);
-		$oldcommandline=" --gpown ".$gpown.$oldcommandline;
+		$oldcommandline.=" --gpown $gpown";
 	}
 	elsif ($ARGV[0] eq "--nobbfix")
 	{
@@ -197,6 +198,7 @@ END
 	{
 		shift(@ARGV);
 		$gnuplot=shift(@ARGV);
+		$oldcommandline.=" --gnuplot $gnuplot";
 	}
 	elsif ($ARGV[0] eq "--gversion")
 	{
@@ -213,7 +215,7 @@ END
 	{
 		shift(@ARGV);
 		$debug='yes';
-		$oldcommandline=" --keep".$oldcommandline;
+		$oldcommandline.=" --keep";
 	}
 	else
 	{
@@ -222,7 +224,8 @@ END
 	}
 }
 
-print "Using scale=$sc fontscale=$fs pointsize=$ps and gpown =$gpown\n";
+print "Using scale=$sc fontscale=$fs pointsize=$ps and gpown=$gpown\n" unless $quiet;
+print "Using gnuplot $gnuplot\n" unless $quiet;
 my $size=$ps/$sc*$fs;
 my $sizestart='{\fontsize{'.$size.'}{'.$size.'}\selectfont';
 print "$sizestart\n" if $debug;
@@ -239,7 +242,7 @@ die "$usage\nfile not exist or is not readable\n" unless (-r $ARGV[0]);
 
 my $texname=undef;
 my $gpname=undef;
-print "Using : '$ARGV[0]'\n" unless $quiet;
+print "Using file: '$ARGV[0]'\n" unless $quiet;
 if ( $ARGV[0] =~ /^(.*)\.tex/ )
 {
 	$texname=$1;
@@ -430,7 +433,7 @@ unless ($nobbfix)
 		close(FILE);
 		die "find no bounding box in ".$outname.".eps\n" unless $newdelta;
 		$sc=$sc*$olddelta/$newdelta;
-		die "Error at runing gp2eps\n" if system("$0 --bbrescale -s ".$sc.$oldcommandline.$ARGV[0])
+		die "Error at runing gp2eps\n" if system("$0 --bbrescale -s $sc $oldcommandline $ARGV[0]");
 	}
 	unlink($outname.".eps.orig");
 }

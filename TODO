@@ -1,11 +1,12 @@
 Already in order:
 * manpages
-  * using asciidoc
-  * add html manpages to googlecode
+  * using txt2tags (http://txt2tags.sourceforge.net/)
+    * it allows manpage googlecode wiki from 1 source file
+  * add manpages to googlecode wiki
 * autotools
   * check for perl, sed, awk, latex, dvips
   * make install
-* make a release -> 1.0
+* make a release with readme -> 1.0
 * README 
   * some intro words
 * examples -> demo

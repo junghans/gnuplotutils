@@ -1,0 +1,132 @@
+GP2EPS
+Christoph Junghans
+%%mtime(%m/%d/%Y)
+
+%!target: man
+%!options(html): --mask-email
+
+% TRANSLATOR: uncomment the next line and fill the right encoding
+%%!encoding: iso-8859-1
+
+%!postproc(html): <HEAD>      '<HEAD>\n<STYLE TYPE="text/css">\n</STYLE>'
+%!postproc(html): (</STYLE>)  'body { margin:3em               ;} \n\1'
+%!postproc(html): (</STYLE>)  'a    { text-decoration:none     ;} \n\1'
+%!postproc(html): (</STYLE>)  'pre  { background-color:#ffffcc ;} \n\1'
+
+%% LOG
+%% 15 Jul 2009 junghans: initial version
+
+= NAME =
+
+gp2eps - converts gnuplot script to eps picture
+
+= SYNOPSIS =
+
+**gp2eps** [//OPTION//]... [//FILE//]
+
+= DESCRIPTION =
+
+**gp2eps** is a GPLv2 converting script
+
+Some more info here
+
+Please visit the program site at
+//""http://gnuplotutils.googlecode.com""//.
+
+
+= OPTIONS =
+
+: **-v**, **--version**
+Prints version
+
+: **--gversion**
+Show gnuplot version (may use --gnuplot before)
+
+: **-h**, **--help**
+Show this help message
+
+: **-q**, **--quiet**
+Do not show messages, expect errors
+
+: **-s**, **--scale** //X.X//
+scale of the image to text 
+(should be the same as using in main tex file \includegraphics[width=X.X\textwidth]{YYY.eps}, when s=X.X )
+
+0.5=halfsides 1.0=normal
+
+default: 0.5
+
+: **-f**, **--fontscale** //X.X//
+scale for the fonts (to pointsize)
+
+1.0=normal 0.8=footnote
+
+default: 0.8
+
+: **-p**, **--pointsize** //X.X//
+pointsize of the fonts
+
+default: 10
+
+: **-r**, **--ratioscale** //X.X//
+change the ratio between size of labels (//gplabel) and numbers (//gpnumber)
+
+default: 0.8
+
+: **-o** //FILE//
+give the out filename, else it is grep from the gp-file or name_tex is used
+
+: **--gpown** //X.X//
+give size of additional label (//gpown)
+
+default: 10
+
+: **--gv**
+Start gv at the end
+
+: **--nobbfix**
+will not fix bounder box to tight box
+
+: **--bbrescale**
+used for correct fontsize after bbfix
+
+: **--gnuplot** //NAME//
+Change the gnuplot command
+
+default: "gnuplot"
+
+: **--debug**
+keep .tex file for debuging (implies --nobbfix)
+
+: **--keep**
+keep .tex file for debuging
+
+
+GRAPH number are always scaled with 0.8 (change with -r).
+Additional stuff to scale like the graph numbers can marked with \gpnumber.
+Stuff to scale like labels can marked with \gplabel.
+Stuff to scale else can marked with \gpown ( use --gpown).
+
+= HOW THIS WORKS =
+
+Explain epslatex terminal
+
+= HISTORY =
+
+fixpslatex story
+
+= AUTHOR =
+
+Written and maintained by Christoph Junghans <junghans@mpip-mainz.mpg.de>
+
+This Manual Page was written by Christoph
+as a text file, then converted to man format by **txt2tags**!
+
+
+= COPYRIGHT =
+
+Copyright (C) 2006 - 2009 Christoph Junghans
+
+This is free software; see the source for copying conditions. There is
+NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE.

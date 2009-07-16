@@ -1,4 +1,5 @@
 syntax: glob
 
 *~
-doc/*.man
+doc/*.{1,man,html,gwiki,wiki}
+

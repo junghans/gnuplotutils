@@ -18,7 +18,7 @@ Christoph Junghans
 
 = NAME =
 
-gp2eps - converts gnuplot script to eps picture
+gp2eps - converts gnuplot script to eps picture directly
 
 = SYNOPSIS =
 
@@ -26,9 +26,13 @@ gp2eps - converts gnuplot script to eps picture
 
 = DESCRIPTION =
 
-**gp2eps** is a GPLv2 converting script
+**gp2eps** is a GPLv2 converting script, which uses gnuplot's epslatex terminal and allows to change the ratio between fonts and picture
+as well as the ratio between axis numbers and axis labels. 
+Latex syntax ($\something$) in the labels (and etc.) is allowed. 
+gp2eps always tries make the eps bounding box as tight as possible and applies an other scale correction factor for that.
 
-Some more info here
+In case the automatic parser fails one can use \gplabel and \gpnumber to tag things to scale in a certain way.
+An additonal fonts scale can be defined with \gpown.
 
 Please visit the program site at
 //""http://gnuplotutils.googlecode.com""//.
@@ -43,10 +47,10 @@ Prints version
 Show gnuplot version (may use --gnuplot before)
 
 : **-h**, **--help**
-Show this help message
+Show help message
 
 : **-q**, **--quiet**
-Do not show messages, expect errors
+Do not show messages, except errors
 
 : **-s**, **--scale** //X.X//
 scale of the image to text 
@@ -69,63 +73,143 @@ pointsize of the fonts
 default: 10
 
 : **-r**, **--ratioscale** //X.X//
-change the ratio between size of labels (//gplabel) and numbers (//gpnumber)
+change the ratio between size of labels (\gplabel) and numbers (\gpnumber)
 
 default: 0.8
 
 : **-o** //FILE//
-give the out filename, else it is grep from the gp-file or name_tex is used
+give the output filename, else it is grep from the gp-file or tex-file that is used
 
 : **--gpown** //X.X//
-give size of additional label (//gpown)
+give size of additional label (\gpown)
 
 default: 10
 
 : **--gv**
-Start gv at the end
+start gv at the end
 
 : **--nobbfix**
-will not fix bounder box to tight box
+will not fix eps bounding box to a tight box
 
 : **--bbrescale**
-used for correct fontsize after bbfix
+used for correct fontsize after bbfix, do NOT use this yourself
 
 : **--gnuplot** //NAME//
-Change the gnuplot command
+change the gnuplot command to run
 
 default: "gnuplot"
 
 : **--debug**
-keep .tex file for debuging (implies --nobbfix)
+keep .tex file for debugging (implies --nobbfix)
 
 : **--keep**
-keep .tex file for debuging
+keep .tex file for debugging
 
 
-GRAPH number are always scaled with 0.8 (change with -r).
+Axis numbers are always scaled with 0.8 (change with -r option).
 Additional stuff to scale like the graph numbers can marked with \gpnumber.
 Stuff to scale like labels can marked with \gplabel.
-Stuff to scale else can marked with \gpown ( use --gpown).
+Stuff to scale somehow else can marked with \gpown ( use --gpown).
+
+= EXAMPLE =
+
+A simple, but nice example plot file would like this:
+
+```
+set terminal epslatex
+set output "tmp.tex"
+
+set title '$\rho$'
+set xlabel "$x_i$ [nm]"
+set ylabel "$\\theta$ [deg]"
+
+plot cos(x) w l
+```
+
+Save it to file.gp and run ``gp2eps file.gp``
+
+Notice that the output file in "set output" is used as an itermediate file. So be careful with the name, because it will overwrite existing files.
+Also mind the double backslash, when using double quotes. It works like in shell, in double qoutes backslash sequenzes are interpreted. 
+Sometimes this is useful, for "\n" or so.
 
 = HOW THIS WORKS =
 
-Explain epslatex terminal
+To explain how this script actually works one has to understand waht gnuplot is doing first. 
+It takes a plot script generates two files. A tex file with all the numbers and label in a picture enviorment. 
+And an eps file with the graphs lines and lines of axis and the tics.
+
+Usually the plot is made in way that it can be included with \include in an other tex file. 
+This would normally work quite nice, except for the case where one has two columns, like in papers.
+Anyway one could still use the gnuplot option 
+``` set size 0.5,0.5
+to overcome this problem.
+However this has some disadvantages:
+- the numbers and labels have the same size which look ugly. 
+This problem one could overcome by hacking gnuplot's format option with something like 
+``` set format x "\tiny %g"' 
+and compensating for the wrong length with 
+``` set xtics 5 offset 3,0
+- this tex file from gnuplot with the picture enviorement tend to break with some latex class and journals like APS,
+usally want to have eps figures, so it would be nice to have the complete figure as an eps.
+- this wrong length calculation in gnuplot are very tedious, 
+and coming from the fact that e.g. //\theta// counts in gnuplot as 6 letters and in latex as 1.
+- the bounding boxes of gnuplot are always slightly too big, which one could compensate in latex as well.
+
+
+So what **gp2eps** is doing, is nothing more than taking the tex file from gnuplot, which is executed by gp2eps, 
+and giving the labels and the numbers the "right" size. Then latex is executed and the bounding box is made tight.
+Right size very much depends on what you want to do and what you think is nice. It normally makes
+- a label footnote size (0.8*fontsize)
+- a numbers again 80% of the size of the labels
+
+
+The tricky things starts when you want to do half size (one column out of two) plots with the correct fontsize. 
+There essential two ways of doing that the //set size// way (see above) or the use of the -s option.
+To make it as easy for the user as possible, you can forget about "set size" and just use -s and 
+just remember to put the right scale in your latex file, something like 
+``` \includegraphics[width=0.3\textwidth]{YYY.eps}
+when s was 0.3.
+This allows you use the //same// plot file for a half size, one third or ever one quater size plot.
+
+In other word instead of make the plot smaller gp2eps just make the fonts bigger. And here comes another feature into play connected to 
+rescaling. When the bounding box is made tight, especial for pm3d plot, the fonts essential become bigger and gp2eps take care of the that
+and corrects the fontsize again according to that change.
+
+
+= TRICKS =
+
+As all the gnuplot label and key are inpreted by late, there are some pitfalls and abilitys. Just to mention one of each:
+- The names of datafiles (plot "datafile") tend to contain uderscores ("_") and gnuplot automatically puts the filename in the key, but latex
+inprets them afterwards and complains about a $ missing or somethings. 
+To overcome this use 
+``` unset key
+ first to find out if this is the problem and then use 
+``` plot 'datafile' t 'some title'.
+- A very powerful thing one can do is to put a label with latex code, something like
+``` set label 2 '\includegraphics[width=6cm]{sketch.eps}' at graph 0.3,graph 0.55
+to put a small sketch picture in the plot.
+
 
 = HISTORY =
 
-fixpslatex story
+When I, Christoph, was in [ITP www.physik.uni-leipzig.de] in Leipzig in 2005, there excist a script called fixpslatex which was doing
+somehow the same thing, based upon gunplot's latex psauxfile terminal. 
+First I modified in a way to make it worked with epslatex terminal.
+But when I went to [Mainz www.mpip-mainz.mpg.de] in 2007, it was completly rewritten and I constantly added new options.
+
+In 2009 I first published it outside my groups on googlecode under GPLv2.
 
 = AUTHOR =
 
 Written and maintained by Christoph Junghans <junghans@mpip-mainz.mpg.de>
 
 This Manual Page was written by Christoph
-as a text file, then converted to man format by **txt2tags**!
+as a text file, then converted to this format by **[txt2tags http://txt2tags.sourceforge.net]** !
 
 
 = COPYRIGHT =
 
-Copyright (C) 2006 - 2009 Christoph Junghans
+Copyright (C) 2005 - 2009 Christoph Junghans
 
 This is free software; see the source for copying conditions. There is
 NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR

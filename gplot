@@ -38,6 +38,7 @@
 #version 1.3.5 12.05.09 -- corrected --gnuplot thx to Victor
 #version 1.3.6 14.05.09 -- gplot should not be interactive
 #version 1.3.7 01.06.09 -- corrected pid things
+#version 1.3.8 18.07.09 -- corrected --help text
 
 usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
 set=""
@@ -70,17 +71,17 @@ $usage
 
 OPTIONS:
 -3, --splot         Use splot instead of plot
--f, --fct           Use function instead of file
-                    (disable buildin file check)
--s, --set 'SET'     Setting some option (may multiple)
--m, --ymarker NUM   Plot marker line in y dir at NUMBER
+-f, --fct           Use functions instead of file
+                    (disables build-in file check)
+-s, --set 'SET'     Setting some gnuplot option (may multiple)
+-m, --ymarker NUM   Plot marker line in y direction at NUMBER
 -x, --xlabel LABEL  Set x label
 -y, --ylabel LABEL  Set y label
 -z, --zlabel LABEL  Set z label
 -t, --title  NAME   Set title
 -k, --nokey         Unset key
--r,  -range TEXT    Set obscure range (may multiple x,y,z)
-                    (disable buildin range greping)
+-r, --range TEXT    Set obscure range (may multiple x,y,z)
+                    (disable build-in range grepping)
 -c, --command TEXT  Extra gnuplot command (unset etc.)
 -o, --output FILE   Plot to file (ignores -d)
                     on term "$defaultterm"
@@ -89,11 +90,11 @@ OPTIONS:
                     Default: Nothing (whatever gnuplot is using)
     --tex           Same as --term "epslatex color"
     --gp2eps        Same as --tex and -p with automatic -o and --to filename
-                    Useful to use with gp2eps
+                    to be used with gp2eps
     --to FILE       Same as --print but to FILE (implies -p)
--d, --dumb          Same as  --term dump (useful for konsole)
--w, --wxt           Same as  --term wxt (allow to rescale)
--p, --print         Print command instead of runing gnuplot
+-d, --dumb          Same as --term dump (useful for console)
+-w, --wxt           Same as --term wxt (allow to rescale)
+-p, --print         Print command instead of running gnuplot
                     (useful for making plotfiles)
     --gnuplot NAME  Change the gnuplot command
                     Default: "$gnuplot"
@@ -105,7 +106,7 @@ OPTIONS:
     --filename NAME manually give filename for replot
 --                  All following arguments are files and plot options
                     (Ranges option will still be checked by grep, unless -r given)
-                    useful for ploting multiple files (BUT quote yourself!)
+                    useful for plotting multiple files (BUT quote yourself!)
 -h, --help          Show this help
 -v, --version       Show version
     --gversion      Show gnuplot version (may use --gnuplot before)
@@ -145,7 +146,7 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
      shift 2 ;;
    -m | --ymarker)
      if [ -n "$(echo "$2" | grep -e "^[-.eE[:digit:]]*$")" ]; then
-       set="${set}set arrow from $2, graph 0 to $2, graph 1 nohead lt -1 \n "
+       set="${set}set arrow from $2, graph 0 to $2, graph 1 nohead lt -1 \n"
      else
        echo Marker argument \($2\) has to be a number
        exit 1
@@ -324,7 +325,7 @@ fi
 
 #add - as file to gpcommand and readin data
 if [ "$pipe" = "yes" ]; then
-  #multi disable all buildin features
+  #multi disable all build-in features
   data="#BEGIN DATA"
   while read -r; do
     data="${data}\n${REPLY}"

@@ -30,7 +30,6 @@
 #version 1.5.1 - added -gv option
 #version 1.6   added short better short opts
 #version 1.7   added --gnuplot and --gversion
-#version 1.7   added --gnuplot and --gversion
 #version 1.7.1 added --watch to gv
 #version 1.7.2 removed base name
 #version 1.7.3 add --keep
@@ -43,6 +42,7 @@
 #version 1.7.10, 01.06.09 -- improved docu
 #version 1.7.11, 08.06.09 -- use bbox_add.pl from cwd, if it exists
 #version 1.7.12, 30.06.09 -- added --gnuplot to oldcommandline 
+#version 1.7.13, 18.07.09 -- fixed some typos in --help 
 use strict;
 
 $_=$0;
@@ -87,7 +87,7 @@ Make a eps file out of a tex or gnuplot (.gp) file
     --gversion        Show gnuplot version (may use --gnuplot before)
 -h, --help            Show this help message
 -q, --quiet           Do not show messages
-                      expect errors
+                      except errors
 -s, --scale X.X       scale of the image to text
 		      (should be the same as using in main tex file
                       \\includegraphics[width=X.X\\textwidth]{YYY.eps}, when s=X.X )
@@ -101,23 +101,22 @@ Make a eps file out of a tex or gnuplot (.gp) file
 -r, --ratioscale X.X  change the ratio between size of labels
                       (\\gplabel) and numbers (\\gpnumber)
                       default: $rs
--o FILE               give the out filename, else it is
-                      grep from the gp-file or name_tex is used
+-o FILE               give the output filename, else it is
+                      grep from the gp-file or tex-file that is used
 --gpown  X.X          give size of additional label '\\gpown'
                       default: $gpown
---gv                  Start gv at the end
---nobbfix             will not fix bounder box to tight box
---bbrescale           used for correct fontsize after bbfix
---gnuplot NAME        Change the gnuplot command
+--gv                  start gv at the end
+--nobbfix             will not fix bounding box to a tight box
+--bbrescale           used for correct fontsize after bounding box fix
+                      do NOT use this yourself
+--gnuplot NAME        change the gnuplot command
                       Default: "$gnuplot"
---debug               keep .tex file for debuging (implies --nobbfix)
---keep                keep .tex file for debuging 
+--debug               keep .tex file for debugging (implies --nobbfix)
+--keep                keep .tex file for debugging 
 
-GRAPH number are always scaled with $rs (change with -r)
-Additional stuff to scale like the graph numbers
-can marked with \\gpnumber
-Stuff to scale like labels can marked with \\gplabel
-Stuff to scale else can marked with \\gpown ( use --gpown)
+Axis numbers are always scaled with 0.8 (change with -r option). Additional stuff to scale
+like the graph numbers can be marked with \\gpnumber.  Stuff to scale like labels can be
+marked with \\gplabel. Stuff to scale somehow else can be marked with \\gpown (use --gpown).
 
 Send comments and bugs to: junghans\@mpip-mainz.mpg.de
 END

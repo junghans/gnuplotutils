@@ -1,4 +1,4 @@
-all: gp2eps.man
+all: gp2eps.man gplot.man
 
 .SUFFIXES: .t2t .man
 

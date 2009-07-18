@@ -1,10 +1,9 @@
 Already in order:
 * manpages
-  * using txt2tags (http://txt2tags.sourceforge.net/)
-    * it allows manpage googlecode wiki from 1 source file
   * add manpages to googlecode wiki
+* replace bbox_add by internal function
 * autotools
-  * check for perl, sed, awk, latex, dvips
+  * check for perl, sed, awk, latex, dvips, gs
   * make install
 * make a release with readme -> 1.0
 * README 
@@ -13,7 +12,6 @@ Already in order:
 * doc
   * in latex
   * with some nice plots from papers (votca)
-* replace bbox_add by internal function
 * gp2eps
   * add tex2eps function (--tex option + from $0 guess)
   * --tex = --notexheader + --nobbfix

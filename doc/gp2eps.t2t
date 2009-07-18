@@ -22,7 +22,9 @@ gp2eps - converts gnuplot script to eps picture directly
 
 = SYNOPSIS =
 
-**gp2eps** [//OPTION//]... [//FILE//]
+**gp2eps** [//OPTION//]... //FILE//
+
+//FILE// can be a plot script (.gp) or  tex file from gnuplot
 
 = DESCRIPTION =
 
@@ -40,11 +42,13 @@ Please visit the program site at
 
 = OPTIONS =
 
+All options are first come first evaluated. Concatenation of short options is possible.
+
 : **-v**, **--version**
 Prints version
 
 : **--gversion**
-Show gnuplot version (may use --gnuplot before)
+Show gnuplot version (may use **--gnuplot** before)
 
 : **-h**, **--help**
 Show help message
@@ -93,7 +97,7 @@ start gv at the end
 will not fix eps bounding box to a tight box
 
 : **--bbrescale**
-used for correct fontsize after bounding box fix, do NOT use this yourself
+used for correct fontsize after bounding box fix, do //NOT// use this yourself
 
 : **--gnuplot** //NAME//
 change the gnuplot command to run
@@ -101,16 +105,16 @@ change the gnuplot command to run
 default: "gnuplot"
 
 : **--debug**
-keep .tex file for debugging (implies --nobbfix)
+keep .tex file for debugging (implies **--nobbfix**)
 
 : **--keep**
 keep .tex file for debugging
 
 
-Axis numbers are always scaled with 0.8 (change with -r option).
-Additional stuff to scale like the graph numbers can marked with \gpnumber.
-Stuff to scale like labels can marked with \gplabel.
-Stuff to scale somehow else can marked with \gpown ( use --gpown).
+Axis numbers are always scaled with 0.8 (change with **-r** option).
+Additional stuff to scale like the graph numbers can be marked with \gpnumber.
+Stuff to scale like labels can be marked with \gplabel.
+Stuff to scale somehow else can be marked with \gpown (use **--gpown**).
 
 = EXAMPLE =
 

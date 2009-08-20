@@ -1,0 +1,18 @@
+dnl Input for autoconf
+AC_INIT(gnuplotutils,9999,[junghans@mpip-mainz.mpg.de])
+AC_CONFIG_AUX_DIR(config)
+
+AM_INIT_AUTOMAKE([1.9 foreign])
+#AC_PROG_CC
+AC_PATH_PROG(PERL,perl,no)
+AC_PATH_PROG(GS,gs,no)
+AC_PATH_PROG(LS,ls,no)
+AC_PATH_PROG(LATEX,latex,no)
+AC_PATH_PROG(DVIPS,dvips,no)
+AC_PATH_PROG(PS2PDF,ps2pdf,no)
+AC_PATH_PROG(TXT2TAGS,txt2tags,no)
+AC_PROG_AWK
+AC_PROG_SED
+
+AC_OUTPUT([Makefile doc/Makefile examples/Makefile])
+

@@ -1,4 +1,4 @@
-EXTRA_DIST = README
+EXTRA_DIST = TODO
 SUBDIRS = doc examples
 
 bin_SCRIPTS =

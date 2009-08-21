@@ -1,18 +1,72 @@
 dnl Input for autoconf
 AC_INIT(gnuplotutils,9999,[junghans@mpip-mainz.mpg.de])
-AC_CONFIG_AUX_DIR(config)
 
 AM_INIT_AUTOMAKE([1.9 foreign])
 #AC_PROG_CC
-AC_PATH_PROG(PERL,perl,no)
-AC_PATH_PROG(GS,gs,no)
-AC_PATH_PROG(LS,ls,no)
-AC_PATH_PROG(LATEX,latex,no)
-AC_PATH_PROG(DVIPS,dvips,no)
-AC_PATH_PROG(PS2PDF,ps2pdf,no)
-AC_PATH_PROG(TXT2TAGS,txt2tags,no)
+
+AC_MSG_NOTICE([Checking for programs we need])
+
+AC_CHECK_PROG(GNUPLOT,gnuplot,true,false)
+if test $GNUPLOT = "false"; then
+  AC_MSG_ERROR([*** gnuplot not found, what is the sense of gnuplotutils then?])
+fi
+
+dnl stuff we need for gp2eps and tricktex
+AC_CHECK_PROG(PERL,perl,true,false)
+AC_CHECK_PROG(LATEX,latex,true,false)
+AC_CHECK_PROG(DVIPS,dvips,true,false)
+AC_CHECK_PROG(GS,gs,true,false)
+AC_CHECK_PROG(PS2PDF,ps2pdf,true,false)
+if test $PERL = "true" && \
+   test $LATEX = "true" && \
+   test $DVIPS = "true" && \
+   test $GS = "true" && \
+   test $PS2PDF = "true"; then
+  GP2EPS="true"
+  TRICKTEX="true"
+else
+  GP2EPS="false"
+  TRICKTEX="false"
+fi
+AM_CONDITIONAL(GP2EPS,[test $GP2EPS = "true"])
+AM_CONDITIONAL(TRICKTEX,[test $TRICKTEX = "true"])
+
+#stuff for gplot
+AC_PATH_PROG(LS,ls,false)
+if test $LS != "false"; then
+  AC_MSG_CHECKING([if ls accepts -l --time-style=+%s])
+  if !$LS -l --time-style=+%s >/dev/null 2>&1; then
+    AC_MSG_RESULT([no])
+    LS=false
+  else
+    AC_MSG_RESULT([yes])
+  fi
+fi
 AC_PROG_AWK
 AC_PROG_SED
+if test $LS != "false" && \
+   test -n "$LS" && \
+   test -n "$SED"; then
+  GPLOT="true"
+else
+  GPLOT="false"
+fi
+AM_CONDITIONAL(GPLOT,[test $GPLOT = "true"])
+
+dnl stuff for man pages
+AC_CHECK_PROG(TXT2TAGS,txt2tags,true,false)
+if test $TXT2TAGS = "false"; then
+    AC_MSG_NOTICE([*** txt2tags not found, you will not be able to rebuild manpages!])
+fi
 
 AC_OUTPUT([Makefile doc/Makefile examples/Makefile])
 
+cat <<EOF
+
+Install:
+----------
+gplot       = $GPLOT
+gp2eps      = $GP2EPS
+tricktex    = $TRICKTEX
+
+EOF

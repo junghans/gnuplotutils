@@ -1,5 +1,4 @@
-#!/bin/sh -x
-mkdir -p config
+#!/bin/sh -xe
 aclocal
 automake --add-missing --copy
 autoconf

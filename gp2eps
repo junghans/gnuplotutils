@@ -43,6 +43,7 @@
 #version 1.7.11, 08.06.09 -- use bbox_add.pl from cwd, if it exists
 #version 1.7.12, 30.06.09 -- added --gnuplot to oldcommandline 
 #version 1.7.13, 18.07.09 -- fixed some typos in --help 
+#version 1.7.14, 16.11.09 -- filecheck before scale calc, better when no arg given 
 use strict;
 
 $_=$0;
@@ -223,6 +224,10 @@ END
 	}
 }
 
+#Print usage
+die "$usage\nno file given\n" unless $#ARGV > -1;
+die "$usage\nfile not exist or is not readable\n" unless (-r $ARGV[0]);
+
 print "Using scale=$sc fontscale=$fs pointsize=$ps and gpown=$gpown\n" unless $quiet;
 print "Using gnuplot $gnuplot\n" unless $quiet;
 my $size=$ps/$sc*$fs;
@@ -234,10 +239,6 @@ print "$size2start\n" if $debug;
 my $size3=$gpown/$sc;
 my $size3start='{\fontsize{'.$size3.'}{'.$size3.'}\selectfont';
 print "$size3start\n" if $debug;
-
-#Print usage
-die "$usage\nno file given\n" unless $#ARGV > -1;
-die "$usage\nfile not exist or is not readable\n" unless (-r $ARGV[0]);
 
 my $texname=undef;
 my $gpname=undef;

@@ -3,18 +3,12 @@ Christoph Junghans
 %%mtime(%m/%d/%Y)
 
 %!target: man
-%!options(html): --mask-email
+%!options: --mask-email
 
 % TRANSLATOR: uncomment the next line and fill the right encoding
 %%!encoding: iso-8859-1
 
-%!postproc(html): <HEAD>      '<HEAD>\n<STYLE TYPE="text/css">\n</STYLE>'
-%!postproc(html): (</STYLE>)  'body { margin:3em               ;} \n\1'
-%!postproc(html): (</STYLE>)  'a    { text-decoration:none     ;} \n\1'
-%!postproc(html): (</STYLE>)  'pre  { background-color:#ffffcc ;} \n\1'
-
-%% LOG
-%% 18 Jul 2009 Junghans: initial version
+%!preproc(gwiki): '(= NAME =)' '\1\n#summary Manpage of gplot'
 
 = NAME =
 
@@ -22,9 +16,9 @@ gplot - shell interface to gnuplot
 
 = SYNOPSIS =
 
-**gplot** [//OPTION//]... [//PLOT_RANGE//] [//FILE//]
+**gplot** ""[""//OPTION//""]""... ""[""//PLOT_RANGE//""]"" ""[""//FILE//""]""
 
-**gplot** [//OPTION//]... -- //PLOT_COMMAND//
+**gplot** ""[""//OPTION//""]""... -- //PLOT_COMMAND//
 
 = DESCRIPTION =
 
@@ -150,7 +144,7 @@ Some useful one liners:
 
 
 Notice the quoting, especially when use //--// option. From time to time gnuplot want quotes as well:
-- label with space
+- labels with spaces
 - filename after plot, when plotting one file this is done automatically
 
 
@@ -177,7 +171,7 @@ for myfile in *.d; do
   gplot -o ${myfile%.d}.eps -t ${myfile%.d} ${myfile} with lines
 done
 ```
-now there are many eps files, which one can combine by **tricktex**.
+now there are many eps files, which one can combine by using **tricktex**.
 
 = HISTORY =
 
@@ -186,7 +180,7 @@ there exist a script called //mplot// by A. Nussbaumer which was doing somehow t
 But I need some other options, that was why I start **gplot**.
 
 But when I went to [Mainz www.mpip-mainz.mpg.de] in 2007, I meet T. Vettorel who had a //mplot// script
-as well. So **gplot** is a mixture of a lot of  ideas from all these scripts and stuff which is useful
+as well. So **gplot** is a mixture of a lot of  ideas from all these scripts and stuff which I found useful
 somewhen.
 
 In 2009 I first published it outside my groups on googlecode under GPLv2.

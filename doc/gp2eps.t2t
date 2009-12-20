@@ -3,26 +3,20 @@ Christoph Junghans
 %%mtime(%m/%d/%Y)
 
 %!target: man
-%!options(html): --mask-email
+%!options: --mask-email
 
 % TRANSLATOR: uncomment the next line and fill the right encoding
 %%!encoding: iso-8859-1
 
-%!postproc(html): <HEAD>      '<HEAD>\n<STYLE TYPE="text/css">\n</STYLE>'
-%!postproc(html): (</STYLE>)  'body { margin:3em               ;} \n\1'
-%!postproc(html): (</STYLE>)  'a    { text-decoration:none     ;} \n\1'
-%!postproc(html): (</STYLE>)  'pre  { background-color:#ffffcc ;} \n\1'
-
-%% LOG
-%% 15 Jul 2009 Junghans: initial version
+%!preproc(gwiki): '(= NAME =)' '\1\n#summary Manpage of gp2eps'
 
 = NAME =
 
-gp2eps - converts gnuplot script to eps picture directly
+gp2eps - converts gnuplot scripts to eps pictures directly
 
 = SYNOPSIS =
 
-**gp2eps** [//OPTION//]... //FILE//
+**gp2eps** ""[""//OPTION//""]""... //FILE//
 
 //FILE// can be a plot script (.gp) or  tex file from gnuplot
 
@@ -37,7 +31,7 @@ In case the automatic parser fails one can use \gplabel and \gpnumber to tag thi
 An additional fonts scale can be defined with \gpown.
 
 Please visit the program site at
-//""http://gnuplotutils.googlecode.com""//.
+[http://gnuplotutils.googlecode.com]
 
 
 = OPTIONS =
@@ -131,28 +125,27 @@ set ylabel "$\\theta$ [deg]"
 plot cos(x) w l
 ```
 
-Save it to file.gp and run ``gp2eps file.gp``
+Save it as file.gp and run ``gp2eps file.gp``
 
 Notice that the output file in ``set output`` is used as an intermediate file. So be careful with the name, because it will overwrite existing files.
-Also mind the double backslash, when using double quotes. It works like in shell, in double quotes backslash sequences are interpreted. 
+Also mind the double backslash, when using double quotes. It works like in shell, in double quotes backslash sequences are interpreted.
 Sometimes this is useful, for ``\n`` or so.
 
 = HOW THIS WORKS =
 
-To explain how this script actually works one has to understand what gnuplot is doing first. 
-It takes a plot script generates two files. A tex file with all the numbers and label in a picture environment. 
-And an eps file with the graphs lines and lines of axis and the tics.
+To explain how this script actually works one has to understand what gnuplot is doing first.
+It takes a plot script and generates two files. A tex file with all the numbers and label in a picture environment. And an eps file with the graphs lines and lines of axis and the tics.
 
-Usually the plot is made in such a way that it can be included with ``\include`` in an main tex file. 
+Usually the plot is made in such a way that it can be included with ``\include`` in an main tex file.
 This would normally work quite nice, except for the case where one has two columns, like in papers.
-Anyway one could still use the gnuplot option 
+Anyway one could still use the gnuplot option
 ``` set size 0.5,0.5
 to overcome this problem.
 However this has some disadvantages:
-- the numbers and labels have the same size which look ugly. 
-This problem one could overcome by hacking gnuplot's format option with something like 
+- the numbers and labels have the same size which look ugly.
+This problem one could overcome by hacking gnuplot's format option with something like
 ``` set format x "\tiny %g"' 
-and compensating for the wrong length with 
+and compensating for the wrong length with
 ``` set xtics 5 offset 3,0
 - this tex file from gnuplot with the picture environment tend to break with some latex class and journals like APS,
 usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
@@ -168,15 +161,15 @@ Right size very much depends on what do you want to do and what you think is nic
 - a numbers again 80% of the size of the labels, change this with -r option
 
 
-The tricky things starts when you want to do half size (one column out of two) plots with the correct fontsize. 
+The tricky things starts when you want to do half size (one column out of two) plots with the correct fontsize.
 There essential two ways of doing that the ``set size`` way (see above) or the use of the -s option.
-To make it as easy for the user as possible, you can forget about ``set size`` and just use -s and 
-just remember to put the right scale in your latex file with something like 
+To make it as easy for the user as possible, you can forget about ``set size`` and just use -s and
+just remember to put the right scale in your latex file with something like
 ``` \includegraphics[width=0.3\textwidth]{YYY.eps}
 e.g. when s was 0.3.
 This allows you use the //same// plot file for a half size, one third or ever one quater size plot.
 
-In other word instead of make the plot smaller gp2eps just make the fonts bigger. And here comes another feature into play connected to 
+In other word instead of make the plot smaller gp2eps just make the fonts bigger. And here comes another feature into play connected to
 rescaling. When the bounding box is made tight, especial for pm3d plot, the fonts essential become bigger and gp2eps take care of the that
 and corrects the fontsize again according to that change.
 
@@ -184,12 +177,12 @@ and corrects the fontsize again according to that change.
 = TRICKS =
 
 As all the gnuplot label and key are interpreted by latex, there are some pitfalls and ability. Just to mention one of each:
-- The names of datafiles 
+- The names of datafiles
 ``plot "datafile"`` tend to contain underscores (**_**) and gnuplot automatically puts the filename in the key, but latex
 interprets them afterwards and complains about a missing **$** or somethings.
-To overcome this use 
+To overcome this use
 ``` unset key
- first to find out if there is a problem with underscores and then use 
+ first to find out if there is a problem with underscores and then use
 ``` plot 'datafile' t 'some title'.
 to avoid the underscores.
 - A very powerful thing one can do is to put a label with latex code, something like
@@ -200,7 +193,7 @@ to put a small sketch picture in the plot.
 = HISTORY =
 
 When I, Christoph, was at [ITP www.physik.uni-leipzig.de] in Leipzig in 2005, there exist a script called fixpslatex which was doing
-somehow the same thing, based upon gunplot's latex psauxfile terminal. 
+somehow the same thing, based upon gunplot's latex psauxfile terminal.
 First I modified in a way to make it worked with epslatex terminal.
 But when I went to [Mainz www.mpip-mainz.mpg.de] in 2007, it was completely rewritten and I constantly added new options.
 

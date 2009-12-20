@@ -1,14 +1,13 @@
 Already in order:
 * manpages
+  * tricktex manpage
   * add manpages to googlecode wiki
 * replace bbox_add by internal function
 * autotools
-  * check for perl, sed, awk, latex, dvips, gs
-  * make install
+  * check for gv 
 * make a release with readme -> 1.0
 * README 
   * some intro words
-* examples -> demo
 * doc
   * in latex
   * with some nice plots from papers (votca)

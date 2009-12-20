@@ -8,7 +8,7 @@ Christoph Junghans
 % TRANSLATOR: uncomment the next line and fill the right encoding
 %%!encoding: iso-8859-1
 
-%!preproc(gwiki): '(= NAME =)' '\1\n#summary Manpage of gp2eps'
+%!preproc(gwiki): '(= NAME =)' '#summary Manpage of gp2eps\n\1'
 
 = NAME =
 

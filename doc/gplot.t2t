@@ -2,13 +2,7 @@ gplot
 Christoph Junghans
 %%mtime(%m/%d/%Y)
 
-%!target: man
-%!options: --mask-email
-
-% TRANSLATOR: uncomment the next line and fill the right encoding
-%%!encoding: iso-8859-1
-
-%!preproc(gwiki): '(= NAME =)' '#summary Manpage of gplot\n\1'
+%!IncludeConf: config.t2t
 
 = NAME =
 
@@ -16,7 +10,7 @@ gplot - shell interface to gnuplot
 
 = SYNOPSIS =
 
-**gplot** ""[""//OPTION//""]""... ""[""//PLOT_RANGE//""]"" ""[""//FILE//""]""
+**gplot** ""[""//OPTION//""]"" ""[""//PLOT_RANGE//""]"" ""[""//FILE//""]""
 
 **gplot** ""[""//OPTION//""]""... -- //PLOT_COMMAND//
 
@@ -25,7 +19,7 @@ gplot - shell interface to gnuplot
 **gplot** is a GPL shell script to do quick plots from command line.
 
 Please visit the program site at
-//""http://gnuplotutils.googlecode.com""//.
+__http://gnuplotutils.googlecode.com__.
 
 
 = OPTIONS =
@@ -130,22 +124,22 @@ Show gnuplot version (may use **--gnuplot** before)
 
 
 Some useful one liners:
-- ""gplot [1:2][2:3] file.d u 1:2""
-- ""gplot -o file.eps file.d""
-- ""gplot file2.d w lines""
-- ""gplot -xx data""
-- ""gplot -o pic.eps -t "Title" file2.d w l""
-- ""gplot -fs log -xx [1:] x**2""
-- ""gplot -3fs pm3d x*y w pm3d""
-- ""gplot -- '"data" u 1:2, "data" u 1:3 w l'""
-- ""gplot -c "unset key" data u 1:2""
-- ""seq 1 10 | gplot -r "[:][0:12]" --tee - 't "data"'""
-- ""seq 1 2 | gplot""
+- ``gplot [1:2][2:3] file.d u 1:2``
+- ``gplot -o file.eps file.d``
+- ``gplot file2.d w lines``
+- ``gplot -xx data``
+- ``gplot -o pic.eps -t "Title" file2.d w l``
+- ``gplot -fs log -xx [1:] x**2``
+- ``gplot -3fs pm3d x*y w pm3d``
+- ``gplot -- '"data" u 1:2, "data" u 1:3 w l'``
+- ``gplot -c "unset key" data u 1:2``
+- ``seq 1 10 | gplot -r "[:][0:12]" --tee - 't "data"'``
+- ``seq 1 2 | gplot``
 
 
 Notice the quoting, especially when use //--// option. From time to time gnuplot want quotes as well:
 - labels with spaces
-- filename after plot, when plotting one file this is done automatically
+- filename after (s)plot command, when plotting only one file this is done by **gplot**
 
 
 If you are unsure what is going on, use //-p// option.

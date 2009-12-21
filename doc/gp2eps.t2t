@@ -2,13 +2,7 @@ gp2eps
 Christoph Junghans
 %%mtime(%m/%d/%Y)
 
-%!target: man
-%!options: --mask-email
-
-% TRANSLATOR: uncomment the next line and fill the right encoding
-%%!encoding: iso-8859-1
-
-%!preproc(gwiki): '(= NAME =)' '#summary Manpage of gp2eps\n\1'
+%!IncludeConf: config.t2t
 
 = NAME =
 
@@ -23,15 +17,15 @@ gp2eps - converts gnuplot scripts to eps pictures directly
 = DESCRIPTION =
 
 **gp2eps** is a GPL converting script, which uses gnuplot's epslatex terminal and allows to change the ratio between fonts and picture
-as well as the ratio between axis numbers and axis labels. 
+as well as the ratio between axis numbers and axis labels.
 Latex syntax ($\something$) in the labels (and everywhere else) is allowed.
 gp2eps always tries make the eps bounding box as tight as possible and applies an other scale correction factor for that.
 
-In case the automatic parser fails one can use \gplabel and \gpnumber to tag things to scale in a certain way.
-An additional fonts scale can be defined with \gpown.
+In case the automatic parser fails one can use //\gplabel// and //\gpnumber// to tag things to scale in a certain way.
+An additional fonts scale can be defined with //\gpown//.
 
 Please visit the program site at
-[http://gnuplotutils.googlecode.com]
+__http://gnuplotutils.googlecode.com__.
 
 
 = OPTIONS =
@@ -51,7 +45,7 @@ Show help message
 Do not show messages, except errors
 
 : **-s**, **--scale** //X.X//
-scale of the image to text 
+scale of the image to text
 
 It should be the same as using in main tex file ``\includegraphics[width=X.X\textwidth]{YYY.eps}``, when s=X.X.
 
@@ -142,15 +136,15 @@ Anyway one could still use the gnuplot option
 ``` set size 0.5,0.5
 to overcome this problem.
 However this has some disadvantages:
-- the numbers and labels have the same size which look ugly.
-This problem one could overcome by hacking gnuplot's format option with something like
+- the numbers and labels have the same size which look ugly. 
+ This problem one could overcome by hacking gnuplot's format option with something like
 ``` set format x "\tiny %g"' 
-and compensating for the wrong length with
+ and compensating for the wrong length with
 ``` set xtics 5 offset 3,0
 - this tex file from gnuplot with the picture environment tend to break with some latex class and journals like APS,
-usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
+ usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
 - this wrong length calculation in gnuplot are very tedious,
-and coming from the fact that e.g. //\theta// counts in gnuplot as 6 letters and in latex as 1.
+ and coming from the fact that e.g. //\theta// counts in gnuplot as 6 letters and in latex as 1.
 - the bounding boxes of gnuplot are always slightly too big, which one could compensate in latex as well.
 
 
@@ -177,17 +171,15 @@ and corrects the fontsize again according to that change.
 = TRICKS =
 
 As all the gnuplot label and key are interpreted by latex, there are some pitfalls and ability. Just to mention one of each:
-- The names of datafiles
-``plot "datafile"`` tend to contain underscores (**_**) and gnuplot automatically puts the filename in the key, but latex
-interprets them afterwards and complains about a missing **$** or somethings.
-To overcome this use
+- The names of datafiles ``plot "datafile"`` tend to contain underscores (**_**) and gnuplot automatically puts the filename in the key, but latex interprets them afterwards and complains about a missing **$** or somethings.
+ To overcome this use
 ``` unset key
  first to find out if there is a problem with underscores and then use
 ``` plot 'datafile' t 'some title'.
-to avoid the underscores.
+ to avoid the underscores.
 - A very powerful thing one can do is to put a label with latex code, something like
 ``` set label 2 '\includegraphics[width=6cm]{sketch.eps}' at graph 0.3,graph 0.55
-to put a small sketch picture in the plot.
+ to put a small sketch picture in the plot.
 
 
 = HISTORY =

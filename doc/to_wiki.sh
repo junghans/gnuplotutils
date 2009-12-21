@@ -1,6 +1,6 @@
 #! /bin/bash -e
 
-[ -d wiki ] || hg clone https://wiki.gnuplotutils.googlecode.com/hg/
+[ -d wiki ] || hg clone https://wiki.gnuplotutils.googlecode.com/hg/ wiki
 hg -R wiki pull
 hg -R wiki update
 make gwiki

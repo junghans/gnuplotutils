@@ -39,6 +39,7 @@
 #version 1.3.6 14.05.09 -- gplot should not be interactive
 #version 1.3.7 01.06.09 -- corrected pid things
 #version 1.3.8 18.07.09 -- corrected --help text
+#version 1.3.9 22.01.10 -- clean up 
 
 usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
 set=""
@@ -57,6 +58,12 @@ data=""
 tee=""
 show_pid="no"
 replot="no"
+md5sum="md5sum"
+
+die() {
+  echo -e "$*" >&2
+  exit 1
+}
 
 get_pids () {
   local pgid
@@ -101,7 +108,7 @@ OPTIONS:
     --pid           Display pid of gnuplot
 -i, --pipe          Switch on reading data from STDIN by hand (useful, with --)
     --tee           like --pipe but print also data to STDOUT
-                    (ignores --print, --to,--pid)
+                    (ignores --print, --to, --pid)
     --replot        make a new plot if file is changed (does not work with --pipe)
     --filename NAME manually give filename for replot
 --                  All following arguments are files and plot options
@@ -148,8 +155,7 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
      if [ -n "$(echo "$2" | grep -e "^[-.eE[:digit:]]*$")" ]; then
        set="${set}set arrow from $2, graph 0 to $2, graph 1 nohead lt -1 \n"
      else
-       echo Marker argument \($2\) has to be a number
-       exit 1
+       die "Marker argument '$2' has to be a number"
      fi
      shift 2 ;;
    -x | --xlabel)
@@ -223,7 +229,7 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
      shift 2;;
    --pid)
      show_pid="yes"
-     shift ;;
+       shift ;;
    --replot)
      replot="yes"
      shift ;;
@@ -255,23 +261,17 @@ done
 if [ -z "$range" ] && [ "${1#'['}" != "$1" ]; then
  if [ "$plot" = "plot" ]; then
    #check for [??:??] or [??:??]{??:??}
-   if [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,2\}$')" ]; then
-     range=$1
-     shift
-   else
-     echo "Range ('$1') has to be in form [??:??]\<[??:??]\>"
-     exit
-   fi
+   [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,2\}$')" ] || 
+     die "Range ('$1') has to be in form [??:??]\<[??:??]\>"
+   range=$1
+   shift
  fi
  if [ "$plot" = "splot" ]; then
    #check for [??:??] or [??:??]{??:??} or [??:??]{??:??}[??:??]
-   if [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,3\}$')" ]; then
-     range=$1
-     shift
-   else
-     echo "Range ('$1') has to be in form [??:??]\<[??:??]\>\<[??:??]\>"
-     exit
-   fi
+   [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,3\}$')" ] ||
+     die "Range ('$1') has to be in form [??:??]\<[??:??]\>\<[??:??]\>"
+   range=$1
+   shift
  fi
 fi
 
@@ -290,11 +290,7 @@ else
   else
     #if function are disabled, check for file
     if [ "$pipe" != "yes" ]; then
-      if [ ! -r "$file" ]; then
-         echo "file '$file' not found !"
-         echo Remaining argument MUST be a file or use --fct
-         exit
-      fi
+      [ -r "$file" ] || die "file '$file' not found !\nRemaining argument MUST be a file or use --fct"
       #create name of output name out of data filename, if no -o given
       [[ -n "$gp2eps" ]] && [[ -z "$out" ]] && out="${file%.*}_pre.eps"
       #create name of to name out of data filename, if no --to given
@@ -306,11 +302,8 @@ else
 fi
 
 #for gp2eps: if no -o and --to was given, when using -- or pipe
-if [ -n "$gp2eps" ] && ( [ -z "$to" ] || [ -z "$out" ] ); then
-  echo Missing --to or -o option for --gp2eps
-  echo Options like --fct, --, --pipe disable automatic names !
-  exit 1
-fi
+[ -n "$gp2eps" ] && ( [ -z "$to" ] || [ -z "$out" ] ) && \
+  die "Missing --to or -o option for --gp2eps\nOptions like --fct, --, --pipe disable automatic names!"
 
 #set output
 [[ -n "$out" ]] && set="${set}set output \"$out\"\n"
@@ -336,37 +329,22 @@ fi
 command="${set}$plot $range $gpcommand"
 
 if [ "$replot" = "yes" ]; then
-   if [ -z "$file" ]; then
-      echo filename unkown for replot - use --filename
-      exit 1
-   fi
-   if [ ! -r $file ]; then
-      echo "file '$file' not found"
-      exit 1
-   fi
-   if [ "$pipe" = "yes" ]; then
-      echo replot does not work with pipe
-      exit 1
-   fi
-   if [ "$print" = "yes" ]; then
-      echo replot does not work with --print
-      exit 1
-   fi
-   let modtime=$(ls -l --time-style=+%s ${file} | awk '{print $6}' )
+   [ -z "$file" ] && die "filename unkown for replot - use --filename"
+   [ -r $file ] || die "file '$file' not found"
+   [ "$pipe" = "yes" ] && die "replot does not work with pipe"
+   [ "$print" = "yes" ] && die "replot does not work with --print"
+   checksum="$($md5sum ${file})"
 fi
 
 #Run gnuplot if no -p given
 if [ "$tee" = "yes" ] || [ -z "$print" ]; then
-  echo -e "${command}\n${data}" | $gnuplot
-  if [ $? -ne 0 ]; then
-    echo gnuplot finished with error !
-    exit
-  fi
+  echo -e "${command}\n${data}" | $gnuplot || \
+    die "gnuplot finished with error !"
   if [ "$tee" = "yes" ]; then
     #print and delete first line ("\n")
     echo -e "$data" | sed '1d;$d'
-  elif [ "$show_pid" = "yes" ]; then
-    get_pids
+  else
+    [ "$show_pid" = "yes" ] && pid=$(get_pids)
   fi
 #print
 else
@@ -379,15 +357,16 @@ else
 fi
 
 if [ "$replot" = "yes" ]; then
-   pid=$(get_pids)
-   while true; do
-      sleep 1
-      let newmodtime=$(ls -l --time-style=+%s ${file} | awk '{print $6}' )
-      if [ $newmodtime -ne $modtime ]; then
-         kill $pid
-         modtime=$newmodtime
-         echo -e "${command}" | $gnuplot
-         pid=$(get_pids)
-      fi 
-   done
+  pid=$(get_pids)
+  while true; do
+    sleep 1
+    newchecksum="$($md5sum ${file})"
+    if [ "${newchecksum}" != "$checksum" ]; then
+      checksum=$newchecksum
+      kill $pid
+      echo -e "${command}" | $gnuplot || \
+        die "gnuplot finished with error !"
+      pid=$(get_pids)
+    fi 
+  done
 fi

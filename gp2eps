@@ -34,16 +34,17 @@
 #version 1.7.2 removed base name
 #version 1.7.3 add --keep
 #version 1.7.4 added tex package color (gnuplot < 4.2)
-#version 1.7.5, 25.04.08 -- better version system
-#version 1.7.6, 02.06.08 -- bug in --keep
-#version 1.7.7, 06.06.08 -- added space in pattern for numbers
-#version 1.7.8, 08.07.08 -- fixes a bug when calling itself and comment lines in gp file
-#version 1.7.9, 13.10.08 -- added GPL header
+#version 1.7.5,  25.04.08 -- better version system
+#version 1.7.6,  02.06.08 -- bug in --keep
+#version 1.7.7,  06.06.08 -- added space in pattern for numbers
+#version 1.7.8,  08.07.08 -- fixes a bug when calling itself and comment lines in gp file
+#version 1.7.9,  13.10.08 -- added GPL header
 #version 1.7.10, 01.06.09 -- improved docu
 #version 1.7.11, 08.06.09 -- use bbox_add.pl from cwd, if it exists
 #version 1.7.12, 30.06.09 -- added --gnuplot to oldcommandline 
 #version 1.7.13, 18.07.09 -- fixed some typos in --help 
 #version 1.7.14, 16.11.09 -- filecheck before scale calc, better when no arg given 
+#version 1.8.0,  20.05.10 -- added --deps
 use strict;
 
 $_=$0;
@@ -67,6 +68,7 @@ my $bbox_add="bbox_add.pl";
 my $oldcommandline='';
 my $bbrescale=undef;
 my $gv=undef;
+my $showdeps=undef;
 
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
 {
@@ -110,6 +112,7 @@ Make a eps file out of a tex or gnuplot (.gp) file
 --nobbfix             will not fix bounding box to a tight box
 --bbrescale           used for correct fontsize after bounding box fix
                       do NOT use this yourself
+--deps                show makefile deps the eps file (implies --quiet)
 --gnuplot NAME        change the gnuplot command
                       Default: "$gnuplot"
 --debug               keep .tex file for debugging (implies --nobbfix)
@@ -194,6 +197,12 @@ END
 		shift(@ARGV);
 		$bbrescale='yes';
 	}
+	elsif ($ARGV[0] eq "--deps")
+	{
+		shift(@ARGV);
+		$showdeps='yes';
+		$quiet="yes";
+	}
 	elsif ($ARGV[0] eq "--gnuplot")
 	{
 		shift(@ARGV);
@@ -229,7 +238,7 @@ die "$usage\nno file given\n" unless $#ARGV > -1;
 die "$usage\nfile not exist or is not readable\n" unless (-r $ARGV[0]);
 
 print "Using scale=$sc fontscale=$fs pointsize=$ps and gpown=$gpown\n" unless $quiet;
-print "Using gnuplot $gnuplot\n" unless $quiet;
+print "Using gnuplot: $gnuplot\n" unless $quiet;
 my $size=$ps/$sc*$fs;
 my $sizestart='{\fontsize{'.$size.'}{'.$size.'}\selectfont';
 print "$sizestart\n" if $debug;
@@ -251,10 +260,54 @@ if ( $ARGV[0] =~ /^(.*)\.tex/ )
 elsif ( $ARGV[0] =~ /^(.*)\.gp/ )
 {
 	$gpname=$1;
+	$outname=$gpname unless $outname;
 }
 else
 {
 	die "Error: File does not end with '.gp' or '.tex'\n";
+}
+
+#show deps for makefiles
+if ($showdeps)
+{
+	my $deps="$outname.eps:";
+	open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
+	while (<FILE>)
+	{
+	  	#in gp file
+	  	if ($gpname)
+		{
+	  		#concat line ending with \
+			while ((/(.*)\\$/) and defined(my $line=<FILE>))
+			{
+				$_=$1.$line;
+	  		}
+			#ignore comment lines
+  			next if /^#/;
+  			if (/^\s*s?plot/)
+			{
+			  	#save old line, we cannot be sure there is not includegraphics in plot command
+    				my $line=$_;
+				#plot [xx:xx] or , can stand before filename in "" or ''
+				#and inline command "<xxx " should be ignored
+    				while (s/(?:s?plot(?:\s*\[.*\])?|,)\s*(['"])([^<].*?)(\1)//)
+				{
+					$deps.=" $2";
+    				}
+				$_=$line;
+  			}
+		}
+		#tex file
+		else
+		{
+  			next if /^%/;
+		}
+		if (/includegraphics(?:\[.*?\])?\{(.*?)\}/) {
+			$deps.=" $1";
+		}
+	}
+	print "$deps\n" unless $deps eq "$outname.eps:";
+	exit;
 }
 
 #if only gp file is given -> build tex file from gnuplot
@@ -294,13 +347,12 @@ if ($gpname)
 	close(FILE);
 	die "'set output' not found \n" unless $texname;
 	die "'set term' not found \n" unless $term;
-	die "Error: Name in gp-file is already the same as output name\n" if $texname eq $gpname;
+	die "Error: Output file in gp-file has the same name as output itself:$gpname.(eps|tex)\n" if $texname eq $gpname;
 	die "Error at runing gnuplot\n" if system ("$gnuplot ".$ARGV[0]);
-	$outname=$gpname unless $outname;
 }
-print "tex-file name : '".$texname."'\n" unless $quiet;
+print "tex-file name : '$texname.tex'\n" unless $quiet;
 die "Error: name of tex-file is the same as output name\n" if $texname eq $outname;
-print "output name : '".$outname."'\n" unless $quiet;
+print "output name : '$outname.eps'\n" unless $quiet;
 
 
 open (NEWTEXFILE,"> ".$outname.".tex")

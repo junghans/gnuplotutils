@@ -461,7 +461,7 @@ unlink($texname.".eps") if ($gpname and !$debug);
 
 unless ($nobbfix)
 {
-	$bbox_add="./$bbox_add" if ( -f "$bbox_add" );
+	$bbox_add="./$bbox_add" if ( -f "./$bbox_add" );
 	print "Using bbox_add: $bbox_add\n" unless $quiet;
  	die "Error at runing $bbox_add\n" if system("$bbox_add --keep $outname.eps");
 	#calculate fontsize in pic without white border, do this only one time :-)

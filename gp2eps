@@ -45,6 +45,7 @@
 #version 1.7.13, 18.07.09 -- fixed some typos in --help 
 #version 1.7.14, 16.11.09 -- filecheck before scale calc, better when no arg given 
 #version 1.8.0,  20.05.10 -- added --deps
+#version 1.8.1,  01.06.10 -- added --bbox_add
 use strict;
 
 $_=$0;
@@ -115,6 +116,8 @@ Make a eps file out of a tex or gnuplot (.gp) file
 --deps                show makefile deps the eps file (implies --quiet)
 --gnuplot NAME        change the gnuplot command
                       Default: "$gnuplot"
+--bbox_add NAME       change the bbox_add command
+                      Default: "$bbox_add"
 --debug               keep .tex file for debugging (implies --nobbfix)
 --keep                keep .tex file for debugging 
 
@@ -208,6 +211,12 @@ END
 		shift(@ARGV);
 		$gnuplot=shift(@ARGV);
 		$oldcommandline.=" --gnuplot $gnuplot";
+	}
+	elsif ($ARGV[0] eq "--bbox_add")
+	{
+		shift(@ARGV);
+		$bbox_add=shift(@ARGV);
+		$oldcommandline.=" --bbox_add $bbox_add";
 	}
 	elsif ($ARGV[0] eq "--gversion")
 	{
@@ -453,6 +462,7 @@ unlink($texname.".eps") if ($gpname and !$debug);
 unless ($nobbfix)
 {
 	$bbox_add="./$bbox_add" if ( -f "$bbox_add" );
+	print "Using bbox_add: $bbox_add\n" unless $quiet;
  	die "Error at runing $bbox_add\n" if system("$bbox_add --keep $outname.eps");
 	#calculate fontsize in pic without white border, do this only one time :-)
 	unless ($bbrescale)

@@ -372,6 +372,7 @@ print NEWTEXFILE '\documentclass{report}'."\n";
 print NEWTEXFILE '\usepackage{graphicx}'."\n";
 print NEWTEXFILE '\usepackage{color}'."\n";
 print NEWTEXFILE '\usepackage{amsmath}'."\n";
+print NEWTEXFILE '\usepackage{psfrag}'."\n";
 print NEWTEXFILE '\newcommand{\gplabel}{}'."\n";
 print NEWTEXFILE '\newcommand{\gpnumber}{}'."\n";
 print NEWTEXFILE '\newcommand{\gpown}{}'."\n";

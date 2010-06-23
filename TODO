@@ -1,10 +1,8 @@
 Already in order:
 * manpages
   * tricktex manpage
-  * add manpages to googlecode wiki
 * replace bbox_add by internal function
-* autotools
-  * check for gv 
+* rename --gv to --view and add --viewer
 * make a release with readme -> 1.0
 * README 
   * some intro words
@@ -12,8 +10,10 @@ Already in order:
   * in latex
   * with some nice plots from papers (votca)
 * gp2eps
-  * add tex2eps function (--tex option + from $0 guess)
-  * --tex = --notexheader + --nobbfix
+  * add exchangeable tex header default/thesis/paper/user/none
+  * allow epslatex standalone terminal -> header=none
+  * add tex2eps functionality (--tex option + guess for $0)
+    * header=none (gnuplot tex file have not header)
   * more terminal (like tkiz)
   * add option to calc old/newdelta out of dy ($4-$2) instead of dx ($3-$1)
   * add --multiplot option (on top, side by side, inlay)

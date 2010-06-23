@@ -137,7 +137,7 @@ Some useful one liners:
 - ``seq 1 2 | gplot``
 
 
-Notice the quoting, especially when use //--// option. From time to time gnuplot want quotes as well:
+Notice the quoting, especially when using the //--// option. From time to time gnuplot want quotes itself as well:
 - labels with spaces
 - filename after (s)plot command, when plotting only one file this is done by **gplot**
 

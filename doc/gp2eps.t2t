@@ -136,15 +136,12 @@ Anyway one could still use the gnuplot option
 ``` set size 0.5,0.5
 to overcome this problem.
 However this has some disadvantages:
-- the numbers and labels have the same size which look ugly. 
- This problem one could overcome by hacking gnuplot's format option with something like
+- the numbers and labels have the same size which look ugly. This problem one could overcome by hacking gnuplot's format option with something like
 ``` set format x "\tiny %g"' 
  and compensating for the wrong length with
 ``` set xtics 5 offset 3,0
-- this tex file from gnuplot with the picture environment tend to break with some latex class and journals like APS,
- usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
-- this wrong length calculation in gnuplot are very tedious,
- and coming from the fact that e.g. //\theta// counts in gnuplot as 6 letters and in latex as 1.
+- this tex file from gnuplot with the picture environment tend to break with some latex class and journals like APS, usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
+- this wrong length calculation in gnuplot are very tedious, and coming from the fact that e.g. //\theta// counts in gnuplot as 6 letters and in latex as 1.
 - the bounding boxes of gnuplot are always slightly too big, which one could compensate in latex as well.
 
 
@@ -170,12 +167,11 @@ and corrects the fontsize again according to that change.
 
 = TRICKS =
 
-As all the gnuplot label and key are interpreted by latex, there are some pitfalls and ability. Just to mention one of each:
-- The names of datafiles ``plot "datafile"`` tend to contain underscores (**_**) and gnuplot automatically puts the filename in the key, but latex interprets them afterwards and complains about a missing **$** or somethings.
- To overcome this use
+As all the gnuplot label and key are interpreted by latex, hence there are certain pitfalls and power features. Just to mention one of each:
+- The names of datafiles in the ``plot`` command tend to contain underscores (e.g. ``data_1_super.d``) and gnuplot automatically puts the filename in the key, but latex interprets them afterwards and complains about a missing **$** or something. To overcome this use
 ``` unset key
  first to find out if there is a problem with underscores and then use
-``` plot 'datafile' t 'some title'.
+``` plot 'datafile' t 'some title'
  to avoid the underscores.
 - A very powerful thing one can do is to put a label with latex code, something like
 ``` set label 2 '\includegraphics[width=6cm]{sketch.eps}' at graph 0.3,graph 0.55

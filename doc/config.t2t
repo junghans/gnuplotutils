@@ -10,6 +10,6 @@
 %!preproc: '\*\*(--.*?)\*\*' '**""\1""**'
 
 %!preproc(gwiki): '(= NAME =)' '#summary Manpage of %%Infile(%F)\n\1'
-%!preproc(gwiki): '""(.)""' '`\1`'
+%!preproc(gwiki): '""([][])""' '`\1`'
 %!preproc(gwiki): '__(http.*?)__' '[\1 \1]'
 

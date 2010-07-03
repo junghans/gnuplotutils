@@ -46,6 +46,7 @@
 #version 1.7.14, 16.11.09 -- filecheck before scale calc, better when no arg given 
 #version 1.8.0,  20.05.10 -- added --deps
 #version 1.8.1,  01.06.10 -- added --bbox_add
+#version 1.8.2,  03.07.10 -- fixed a bug in --deps
 use strict;
 
 $_=$0;
@@ -293,7 +294,8 @@ if ($showdeps)
 	  		}
 			#ignore comment lines
   			next if /^#/;
-  			if (/^\s*s?plot/)
+			#line starting with plot, splot, replot
+  			if (/^\s*(re|s)?plot/)
 			{
 			  	#save old line, we cannot be sure there is not includegraphics in plot command
     				my $line=$_;

@@ -300,10 +300,10 @@ if ($showdeps)
 			  	#save old line, we cannot be sure there is not includegraphics in plot command
     				my $line=$_;
 				#plot [xx:xx] or , can stand before filename in "" or ''
-				#and inline command "<xxx " should be ignored
-    				while (s/(?:s?plot(?:\s*\[.*\])?|,)\s*(['"])([^<].*?)(\1)//)
+    				while (s/(?:plot(?:\s*\[.*\])?|,)\s*(['"])([^\1]*?)(\1)//)
 				{
-					$deps.=" $2";
+					#and inline command "<xxx " should be ignored
+					$deps.=" $2" if ($2 !~ /^</);
     				}
 				$_=$line;
   			}

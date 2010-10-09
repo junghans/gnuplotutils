@@ -16,30 +16,31 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#version 0.94  17.09.07 -- added --pipe
-#version 0.95  17.09.07 -- added --range to enable obscure ranges
-#version 0.96  17.09.07 -- added --tee option
-#version 0.97  17.09.07 -- added --gversion to help confused people
-#version 0.98  01.10.07 -- change read code
-#version 0.99  09.10.07 -- bug in multi and allow piping of eps
-#version 0.100 09.10.07 -- added splitting of short options
-#version 1.0   10.10.07 -- better short opts
-#version 1.1   18.10.07 -- removed string bug
-#version 1.1.1 06.02.08 -- removed base name
-#version 1.1.2 09.04.08 -- added ymarker
-#version 1.1.3 16.04.08 -- better version system
-#version 1.1.4 01.09.08 -- added --pid
-#version 1.2.0 03.09.08 -- read from stdin is now default
-#version 1.3.0 05.09.08 -- added --replot
-#version 1.3.1 08.09.08 -- added wxt to persist terms
-#version 1.3.2 29.09.08 -- added -w options
-#version 1.3.3 13.10.08 -- added GPL header
-#version 1.3.4 15.10.08 -- corrected documentation
-#version 1.3.5 12.05.09 -- corrected --gnuplot thx to Victor
-#version 1.3.6 14.05.09 -- gplot should not be interactive
-#version 1.3.7 01.06.09 -- corrected pid things
-#version 1.3.8 18.07.09 -- corrected --help text
-#version 1.3.9 22.01.10 -- clean up 
+#version 0.94   17.09.07 -- added --pipe
+#version 0.95   17.09.07 -- added --range to enable obscure ranges
+#version 0.96   17.09.07 -- added --tee option
+#version 0.97   17.09.07 -- added --gversion to help confused people
+#version 0.98   01.10.07 -- change read code
+#version 0.99   09.10.07 -- bug in multi and allow piping of eps
+#version 0.100  09.10.07 -- added splitting of short options
+#version 1.0    10.10.07 -- better short opts
+#version 1.1    18.10.07 -- removed string bug
+#version 1.1.1  06.02.08 -- removed base name
+#version 1.1.2  09.04.08 -- added ymarker
+#version 1.1.3  16.04.08 -- better version system
+#version 1.1.4  01.09.08 -- added --pid
+#version 1.2.0  03.09.08 -- read from stdin is now default
+#version 1.3.0  05.09.08 -- added --replot
+#version 1.3.1  08.09.08 -- added wxt to persist terms
+#version 1.3.2  29.09.08 -- added -w options
+#version 1.3.3  13.10.08 -- added GPL header
+#version 1.3.4  15.10.08 -- corrected documentation
+#version 1.3.5  12.05.09 -- corrected --gnuplot thx to Victor
+#version 1.3.6  14.05.09 -- gplot should not be interactive
+#version 1.3.7  01.06.09 -- corrected pid things
+#version 1.3.8  18.07.09 -- corrected --help text
+#version 1.3.9  22.01.10 -- clean up
+#version 1.3.10 09.10.10 -- added --[xyz]range option (thx to cahit)
 
 usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
 set=""
@@ -81,6 +82,8 @@ OPTIONS:
 -f, --fct           Use functions instead of file
                     (disables build-in file check)
 -s, --set 'SET'     Setting some gnuplot option (may multiple)
+    --[xyz]range RA Set [xyz]range, can be overwritten by --range
+-u, --unset 'SET'   Unsetting some gnuplot option (may multiple)
 -m, --ymarker NUM   Plot marker line in y direction at NUMBER
 -x, --xlabel LABEL  Set x label
 -y, --ylabel LABEL  Set y label
@@ -139,7 +142,7 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
  #no long opt and combined short opt
  if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
     #if first short opt need argument
-    if [ "${1#-[cmorstxyz]}" != "${1}" ]; then
+    if [ "${1#-[cmorstuxyz]}" != "${1}" ]; then
        set -- "${1:0:2}" "${1:2}" "${@:2}"
     else
        #mind the - here !
@@ -150,6 +153,9 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
  case $1 in 
    -s | --set)
      set="${set}set $2\n"
+     shift 2 ;;
+   -u | --unset)
+     set="${set}unset $2\n"
      shift 2 ;;
    -m | --ymarker)
      if [ -n "$(echo "$2" | grep -e "^[-.eE[:digit:]]*$")" ]; then
@@ -175,6 +181,9 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
      shift ;;
    -r | --range)
      range="${range}$2"
+     shift 2 ;;
+   --[xyz]range)
+     set="${set}set ${1##--} $2\n"
      shift 2 ;;
    -c | --command)
      set="${set}$2\n"
@@ -252,8 +261,7 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
      echo show version | $gnuplot
      exit 0;;
    *)
-    echo "Unknown option '$1'" >&2
-    exit 1;;
+    die "Unknown option '$1'";;
  esac
 done
 

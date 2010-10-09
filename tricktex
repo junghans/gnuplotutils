@@ -203,8 +203,6 @@ open(FILE,"> $output.tex") or
 	die "Error at opening file\n";
 
 print FILE '\documentclass[10pt,a4paper,onecolumn]{article}'."\n";
-print FILE '\usepackage[latin1]{inputenc}'."\n";
-print FILE '\usepackage{german}'."\n";
 print FILE '\usepackage{amsmath}'."\n" if ($equ);
 print FILE '\usepackage{graphicx}'."\n" if ($pic);
 foreach (@packages){

@@ -10,10 +10,11 @@
   * with some nice plots from papers (votca)
 * gp2eps
   * determine \textwidth using layout package and 
-    '\printinunitsof{cm}\prntlen{\textwidth}' command
+    * '\printinunitsof{cm}\prntlen{\textwidth}' command
+    * use this length in set terminal size xxx,3.5/5*xxx
   * allow epslatex standalone terminal -> header=none
   * add tex2eps functionality (--tex option + guess for $0)
-    * header=none (gnuplot tex file have not header)
+    * header=none (normal gnuplot tex file have no headers)
   * more terminal (like tkiz)
   * add option to calc old/newdelta out of dy ($4-$2) instead of dx ($3-$1)
   * add --multiplot option (on top, side by side, inlay)

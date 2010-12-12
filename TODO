@@ -9,7 +9,6 @@
   * in txt2tags or latex
   * with some nice plots from papers (votca)
 * gp2eps
-  * add exchangeable tex header default/thesis/paper/user/none
   * determine \textwidth using layout package and 
     '\printinunitsof{cm}\prntlen{\textwidth}' command
   * allow epslatex standalone terminal -> header=none

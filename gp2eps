@@ -47,6 +47,7 @@
 #version 1.8.0,  20.05.10 -- added --deps
 #version 1.8.1,  01.06.10 -- added --bbox_add
 #version 1.8.2,  03.07.10 -- fixed a bug in --deps
+#version 1.8.3,  12.12.10 -- added --showheader and --headerfile option
 use strict;
 
 $_=$0;
@@ -71,7 +72,30 @@ my $oldcommandline='';
 my $bbrescale=undef;
 my $gv=undef;
 my $showdeps=undef;
+my $headerfile=undef;
 
+sub printheader(*;$) {
+  die "printheader: Missing argument\n" unless (defined($_[0]));
+  my $fh=shift;
+  if (defined($_[0])) {
+    open(HEADERFILE,$_[0])
+      or die "Error at opening headerfile '$_[0]'\n";
+    while (<HEADERFILE>){
+      print $fh "$_";
+    }
+    close(HEADERFILE);
+  } else {
+    print $fh '\documentclass{report}'."\n";
+    print $fh '\usepackage{graphicx}'."\n";
+    print $fh '\usepackage{color}'."\n";
+    print $fh '\usepackage{amsmath}'."\n";
+    print $fh '\usepackage{psfrag}'."\n";
+  }
+}
+
+###############
+# MAIN PROGAM #
+###############
 while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
 {
         if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
@@ -106,6 +130,8 @@ Make a eps file out of a tex or gnuplot (.gp) file
 -r, --ratioscale X.X  change the ratio between size of labels
                       (\\gplabel) and numbers (\\gpnumber)
                       default: $rs
+    --headerfile FILE Read latex header from file
+    --showheader      Show default headerlines
 -o FILE               give the output filename, else it is
                       grep from the gp-file or tex-file that is used
 --gpown  X.X          give size of additional label '\\gpown'
@@ -178,6 +204,18 @@ END
 		shift(@ARGV);
 		$rs=shift(@ARGV);
 		$oldcommandline.=" -r $rs";
+	}
+	elsif ($ARGV[0] eq "--headerfile")
+	{
+	  shift(@ARGV);
+	  $headerfile=shift(@ARGV);
+	  $oldcommandline.=" --headerfile $headerfile";
+	}
+	elsif ($ARGV[0] eq "--showheader")
+	{
+	  shift(@ARGV);
+	  printheader(\*STDOUT,undef);
+	  exit;
 	}
 	elsif ($ARGV[0] eq "--gv")
 	{
@@ -370,11 +408,10 @@ open (NEWTEXFILE,"> ".$outname.".tex")
 	or die "Error at opening new tex file\n";
 open(OLDTEXFILE,$texname.".tex")
 	or die "Error at opening old tex file\n";
-print NEWTEXFILE '\documentclass{report}'."\n";
-print NEWTEXFILE '\usepackage{graphicx}'."\n";
-print NEWTEXFILE '\usepackage{color}'."\n";
-print NEWTEXFILE '\usepackage{amsmath}'."\n";
-print NEWTEXFILE '\usepackage{psfrag}'."\n";
+if ($headerfile) {
+  print "header file to use: '$headerfile'\n" unless $quiet;
+}
+printheader(\*NEWTEXFILE,$headerfile);
 print NEWTEXFILE '\newcommand{\gplabel}{}'."\n";
 print NEWTEXFILE '\newcommand{\gpnumber}{}'."\n";
 print NEWTEXFILE '\newcommand{\gpown}{}'."\n";
@@ -507,4 +544,3 @@ if ($gv)
 {
 	die "Error at runing gv\n" if system("gv -watch $outname.eps &");
 }
-#fs md5sum 7426f2287bf9ef55256ca95fcbe15f38

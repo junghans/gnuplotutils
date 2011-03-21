@@ -48,12 +48,13 @@
 #version 1.8.1,  01.06.10 -- added --bbox_add
 #version 1.8.2,  03.07.10 -- fixed a bug in --deps
 #version 1.8.3,  12.12.10 -- added --showheader and --headerfile option
+#version 1.8.4,  21.03.11 -- --gv -> --view and improved --headerfile
 use strict;
 
 $_=$0;
 s#^.*/##;
 my $progname=$_;
-my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help\nFILE have to be a .gp or .tex file";
+my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
 
 #Defaults
 my $quiet=undef;
@@ -63,6 +64,7 @@ my $fs=0.8;
 my $rs=0.8;
 my $ps=10;
 my $gpown=10;
+my $termopts="color";
 my $nobbfix=undef;
 my $debug=undef;
 my $gnuplot="gnuplot";
@@ -70,7 +72,7 @@ my $bbox_add="bbox_add.pl";
 
 my $oldcommandline='';
 my $bbrescale=undef;
-my $gv=undef;
+my $viewer=undef;
 my $showdeps=undef;
 my $headerfile=undef;
 
@@ -81,6 +83,8 @@ sub printheader(*;$) {
     open(HEADERFILE,$_[0])
       or die "Error at opening headerfile '$_[0]'\n";
     while (<HEADERFILE>){
+      last if /^[^%]begin\{document\}/;
+      next if /\\input{.*?}/;
       print $fh "$_";
     }
     close(HEADERFILE);
@@ -131,12 +135,15 @@ Make a eps file out of a tex or gnuplot (.gp) file
                       (\\gplabel) and numbers (\\gpnumber)
                       default: $rs
     --headerfile FILE Read latex header from file
-    --showheader      Show default headerlines
+                      (stops at \\begin{document})
+    --showheader      Show headerlines (from --headerfile or defaults)
 -o FILE               give the output filename, else it is
-                      grep from the gp-file or tex-file that is used
+                      trunc from the gp-file or tex-file that is used
 --gpown  X.X          give size of additional label '\\gpown'
                       default: $gpown
---gv                  start gv at the end
+--termopts OPTS       extra options to be given to 'set term epslatex'
+                      default: $termopts
+--view VIEWER         view output with VIEWER at the end
 --nobbfix             will not fix bounding box to a tight box
 --bbrescale           used for correct fontsize after bounding box fix
                       do NOT use this yourself
@@ -214,20 +221,25 @@ END
 	elsif ($ARGV[0] eq "--showheader")
 	{
 	  shift(@ARGV);
-	  printheader(\*STDOUT,undef);
+	  printheader(\*STDOUT,$headerfile);
 	  exit;
 	}
-	elsif ($ARGV[0] eq "--gv")
+	elsif ($ARGV[0] eq "--view")
 	{
 		shift(@ARGV);
-		$gv="yes";
-		#$oldcommandline.=" -gv";
+		$viewer=shift(@ARGV);
 	}
 	elsif ($ARGV[0] eq "--gpown")
 	{
 		shift(@ARGV);
 		$gpown=shift(@ARGV);
 		$oldcommandline.=" --gpown $gpown";
+	}
+	elsif ($ARGV[0] eq "--termopts")
+	{
+		shift(@ARGV);
+		$termopts=shift(@ARGV);
+		$oldcommandline.=" --termopts '$termopts'";
 	}
 	elsif ($ARGV[0] eq "--nobbfix")
 	{
@@ -276,14 +288,13 @@ END
 	}
 	else
 	{
-		print "Unknow option '".$ARGV[0]."' ignored !\n";
-		shift(@ARGV);
+		die "Unknow option '".$ARGV[0]."'!\n";
 	}
 }
 
 #Print usage
-die "$usage\nno file given\n" unless $#ARGV > -1;
-die "$usage\nfile not exist or is not readable\n" unless (-r $ARGV[0]);
+die "No file given\n$usage\n" unless $#ARGV > -1;
+die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
 print "Using scale=$sc fontscale=$fs pointsize=$ps and gpown=$gpown\n" unless $quiet;
 print "Using gnuplot: $gnuplot\n" unless $quiet;
@@ -540,7 +551,7 @@ unless ($nobbfix)
 	unlink($outname.".eps.orig");
 }
 
-if ($gv)
+if ($viewer)
 {
-	die "Error at runing gv\n" if system("gv -watch $outname.eps &");
+	die "Error at running $viewer\n" if system("$viewer $outname.eps &");
 }

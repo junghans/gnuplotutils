@@ -75,7 +75,9 @@ my $bbrescale=undef;
 my $viewer=undef;
 my $showdeps=undef;
 my $headerfile=undef;
+my $textwidth="auto";
 
+my $tmpfile="gp2eps_tmp";
 sub printheader(*;$) {
   die "printheader: Missing argument\n" unless (defined($_[0]));
   my $fh=shift;
@@ -95,6 +97,35 @@ sub printheader(*;$) {
     print $fh '\usepackage{amsmath}'."\n";
     print $fh '\usepackage{psfrag}'."\n";
   }
+}
+
+sub get_textwidth() {
+  die "$tmpfile.tex is already and would be overwritten add --force if you are sue that you want that.\n" 
+    if ( -r "$tmpfile.tex");
+  open(TEXFILE,"> $tmpfile.tex") or die "can not open '$tmpfile.tex'\n";
+  printheader(\*TEXFILE,$headerfile);
+  print TEXFILE '\usepackage{layouts}'."\n";
+  print TEXFILE '\begin{document}'."\n";
+  print TEXFILE '\pagestyle{empty}'."\n";
+  print TEXFILE 'GP2EPS'."\n";
+  print TEXFILE '\printinunitsof{cm}\prntlen{\textwidth}'."\n";
+  print TEXFILE 'GP2EPS'."\n";
+  print TEXFILE '\end{document}'."\n";
+  close(TEXFILE);
+  die "Error at runing latex\n" if system("latex -halt-on-error ".$tmpfile.".tex");
+  unlink("$tmpfile.tex");
+  unlink("$tmpfile.aux");
+  unlink("$tmpfile.log");
+  open(DVIFILE,"$tmpfile.dvi") or die "Could not open '$tmpfile.dvi'\n";
+  my $tl=undef;
+  while (<DVIFILE>) {
+    $tl = $1 if /([0-9.]+cm)/;
+    last if defined($tl);
+  }
+  close(DVIFILE);
+  unlink("$tmpfile.dvi");
+  die "Could not grep textwidth\n" unless defined($tl);
+  return $tl;
 }
 
 ###############
@@ -370,6 +401,7 @@ if ($showdeps)
 	exit;
 }
 
+$textwidth=get_textwidth() if ($textwidth eq "auto");
 #if only gp file is given -> build tex file from gnuplot
 if ($gpname)
 {

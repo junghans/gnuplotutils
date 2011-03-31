@@ -99,11 +99,11 @@ sub printheader(*;$) {
   }
 }
 
-sub get_textwidth() {
+sub get_textwidth($) {
   die "$tmpfile.tex is already and would be overwritten add --force if you are sue that you want that.\n" 
     if ( -r "$tmpfile.tex");
   open(TEXFILE,"> $tmpfile.tex") or die "can not open '$tmpfile.tex'\n";
-  printheader(\*TEXFILE,$headerfile);
+  printheader(\*TEXFILE,$_[0]);
   print TEXFILE '\usepackage{layouts}'."\n";
   print TEXFILE '\begin{document}'."\n";
   print TEXFILE '\pagestyle{empty}'."\n";
@@ -123,8 +123,8 @@ sub get_textwidth() {
     last if defined($tl);
   }
   close(DVIFILE);
+  die "Could not grep textwidth from $tmpfile.dvi \n" unless defined($tl);
   unlink("$tmpfile.dvi");
-  die "Could not grep textwidth\n" unless defined($tl);
   return $tl;
 }
 
@@ -146,7 +146,7 @@ while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
 	{
 		print <<END;
 $usage
-Make a eps file out of a tex or gnuplot (.gp) file
+Makes a eps file out of a gnuplot script
 -v, --version         Prints version
     --gversion        Show gnuplot version (may use --gnuplot before)
 -h, --help            Show this help message
@@ -168,8 +168,8 @@ Make a eps file out of a tex or gnuplot (.gp) file
     --headerfile FILE Read latex header from file
                       (stops at \\begin{document})
     --showheader      Show headerlines (from --headerfile or defaults)
--o FILE               give the output filename, else it is
-                      trunc from the gp-file or tex-file that is used
+-o FILE               give the output filename
+                      default: trunc of 1st gnuplot script
 --gpown  X.X          give size of additional label '\\gpown'
                       default: $gpown
 --termopts OPTS       extra options to be given to 'set term epslatex'
@@ -342,106 +342,83 @@ print "$size3start\n" if $debug;
 my $texname=undef;
 my $gpname=undef;
 print "Using file: '$ARGV[0]'\n" unless $quiet;
-if ( $ARGV[0] =~ /^(.*)\.tex/ )
-{
-	$texname=$1;
-	$outname=$texname."_tex" unless $outname;
-}
-elsif ( $ARGV[0] =~ /^(.*)\.gp/ )
-{
-	$gpname=$1;
-	$outname=$gpname unless $outname;
-}
-else
-{
-	die "Error: File does not end with '.gp' or '.tex'\n";
-}
+$ARGV[0] =~ /^(.*)\.[^.]*?/ or die "File '$ARGV[0]' has not extension\n";
+$gpname=$1;
+$outname=$gpname unless $outname;
 
-#show deps for makefiles
+#show deps for makefiles, we need $output name
 if ($showdeps)
 {
-	my $deps="$outname.eps:";
+	my $deps="$outname.eps: $ARGV[0]";
 	open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
 	while (<FILE>)
 	{
 	  	#in gp file
-	  	if ($gpname)
+	  	#concat line ending with \
+		while ((/(.*)\\$/) and defined(my $line=<FILE>))
 		{
-	  		#concat line ending with \
-			while ((/(.*)\\$/) and defined(my $line=<FILE>))
-			{
-				$_=$1.$line;
-	  		}
-			#ignore comment lines
-  			next if /^#/;
-			#line starting with plot, splot, replot
-  			if (/^\s*(re|s)?plot/)
-			{
-			  	#save old line, we cannot be sure there is not includegraphics in plot command
-    				my $line=$_;
-				#plot [xx:xx] or , can stand before filename in "" or ''
-    				while (s/(?:plot(?:\s*\[.*\])?|,)\s*(['"])([^\1]*?)(\1)//)
-				{
-					#and inline command "<xxx " should be ignored
-					$deps.=" $2" if ($2 !~ /^</);
-    				}
-				$_=$line;
-  			}
-		}
-		#tex file
-		else
+			$_=$1.$line;
+	  	}
+		#ignore comment lines
+  		next if /^#/;
+		#line starting with plot, splot, replot
+  		if (/^\s*(re|s)?plot/)
 		{
-  			next if /^%/;
-		}
-		if (/includegraphics(?:\[.*?\])?\{(.*?)\}/) {
-			$deps.=" $1";
-		}
+		  	#save old line, we cannot be sure there is not includegraphics in plot command
+    			my $line=$_;
+			#plot [xx:xx] or , can stand before filename in "" or ''
+    			while (s/(?:plot(?:\s*\[.*\])?|,)\s*(['"])([^\1]*?)(\1)//)
+			{
+				#and inline command "<xxx " should be ignored
+				$deps.=" $2" if ($2 !~ /^</);
+    			}
+			$_=$line;
+  		}
 	}
-	print "$deps\n" unless $deps eq "$outname.eps:";
+	print "$deps\n";
 	exit;
 }
 
-$textwidth=get_textwidth() if ($textwidth eq "auto");
-#if only gp file is given -> build tex file from gnuplot
-if ($gpname)
+#build tex file from gnuplot
+print "gp-file name : '".$gpname."'\n" unless $quiet;
+open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
+my $term=undef;
+while (<FILE>)
 {
-	print "gp-file name : '".$gpname."'\n" unless $quiet;
-	open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
-	my $term=undef;
-	while (<FILE>)
+	next if /^#/;
+	if (/set (out |ou |output)/)
 	{
-		next if /^#/;
-		if (/set (out |ou |output)/)
+		if ($_ =~ / ["'](.+?)\.(eps|tex)["']/)
 		{
-			if ($_ =~ / ["'](.+?)\.(eps|tex)["']/)
-			{
-				$texname=$1;
-				print "Found eps name '".$1.".eps\n";
-			}
-			else
-			{
-				die "file given in 'set output' does not end with .eps or .tex\n";
-			}
+			$texname=$1;
+			print "Found eps name '".$1.".eps\n";
 		}
-		if (/set (t |term |terminal)/)
+		else
 		{
-			if ($_ =~ /epslatex/)
-			{
-				$term="epslatex";
-				print "Found term epslatex\n" unless $quiet;
-			}
-			else
-			{
-				die "'set term' is not 'epslatex'\n";
-			}
+			die "file given in 'set output' does not end with .eps or .tex\n";
 		}
 	}
-	close(FILE);
-	die "'set output' not found \n" unless $texname;
-	die "'set term' not found \n" unless $term;
-	die "Error: Output file in gp-file has the same name as output itself:$gpname.(eps|tex)\n" if $texname eq $gpname;
-	die "Error at runing gnuplot\n" if system ("$gnuplot ".$ARGV[0]);
+	if (/set (t |term |terminal)/)
+	{
+		if ($_ =~ /epslatex/)
+		{
+			$term="epslatex";
+			print "Found term epslatex\n" unless $quiet;
+		}
+		else
+		{
+			die "'set term' is not 'epslatex'\n";
+		}
+	}
 }
+close(FILE);
+
+$textwidth=get_textwidth($headerfile) if ($textwidth eq "auto");
+die "'set output' not found \n" unless $texname;
+die "'set term' not found \n" unless $term;
+die "Error: Output file in gp-file has the same name as output itself:$gpname.(eps|tex)\n" if $texname eq $gpname;
+die "Error at runing gnuplot\n" if system ("$gnuplot ".$ARGV[0]);
+
 print "tex-file name : '$texname.tex'\n" unless $quiet;
 die "Error: name of tex-file is the same as output name\n" if $texname eq $outname;
 print "output name : '$outname.eps'\n" unless $quiet;

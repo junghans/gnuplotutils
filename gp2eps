@@ -59,10 +59,11 @@ my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
 #Defaults
 my $quiet=undef;
 my $outname=undef;
-my $sc=0.5;
-my $fs=0.8;
-my $rs=0.8;
-my $ps=10;
+my $sizescale=2;
+my $scale=2;
+my $fontscale=0.8;
+my $ratioscale=0.8;
+my $pointsize=10;
 my $gpown=10;
 my $termopts="color";
 my $nobbfix=undef;
@@ -156,15 +157,15 @@ Makes a eps file out of a gnuplot script
 		      (should be the same as using in main tex file
                       \\includegraphics[width=X.X\\textwidth]{YYY.eps}, when s=X.X )
                       0.5=halfsides 1.0=normal
-                      default: $sc
+                      default: $scale
 -f, --fontscale X.X   scale for the fonts (to pointsize)
                       1.0=normal 0.8=footnote
-                      default: $fs
+                      default: $fontscale
 -p, --pointsize X.X   pointsize of the fonts
-                      default: $ps
+                      default: $pointsize
 -r, --ratioscale X.X  change the ratio between size of labels
                       (\\gplabel) and numbers (\\gpnumber)
-                      default: $rs
+                      default: $ratioscale
     --headerfile FILE Read latex header from file
                       (stops at \\begin{document})
     --showheader      Show headerlines (from --headerfile or defaults)
@@ -223,25 +224,25 @@ END
 	elsif (($ARGV[0] eq "-s") or ($ARGV[0] eq "--scale"))
 	{
 		shift(@ARGV);
-		$sc=shift(@ARGV);
+		$scale=shift(@ARGV);
 	}
 	elsif (($ARGV[0] eq "-f") or ($ARGV[0] eq "--fontscale"))
 	{
 		shift(@ARGV);
-		$fs=shift(@ARGV);
-		$oldcommandline.=" -f $fs";
+		$fontscale=shift(@ARGV);
+		$oldcommandline.=" -f $fontscale";
 	}
 	elsif (($ARGV[0] eq "-p") or ($ARGV[0] eq "--pointsize"))
 	{
 		shift(@ARGV);
-		$ps=shift(@ARGV);
-		$oldcommandline.=" -p $ps";
+		$pointsize=shift(@ARGV);
+		$oldcommandline.=" -p $pointsize";
 	}
 	elsif (($ARGV[0] eq "-r") or ($ARGV[0] eq "--ratioscale"))
 	{
 		shift(@ARGV);
-		$rs=shift(@ARGV);
-		$oldcommandline.=" -r $rs";
+		$ratioscale=shift(@ARGV);
+		$oldcommandline.=" -r $ratioscale";
 	}
 	elsif ($ARGV[0] eq "--headerfile")
 	{
@@ -327,15 +328,15 @@ END
 die "No file given\n$usage\n" unless $#ARGV > -1;
 die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
-print "Using scale=$sc fontscale=$fs pointsize=$ps and gpown=$gpown\n" unless $quiet;
+print "Using scale=$scale fontscale=$fontscale pointsize=$pointsize and gpown=$gpown\n" unless $quiet;
 print "Using gnuplot: $gnuplot\n" unless $quiet;
-my $size=$ps/$sc*$fs;
+my $size=$pointsize/$scale*$fontscale;
 my $sizestart='{\fontsize{'.$size.'}{'.$size.'}\selectfont';
 print "$sizestart\n" if $debug;
-my $size2=$ps/$sc*$fs*$rs;
+my $size2=$pointsize/$scale*$fontscale*$ratioscale;
 my $size2start='{\fontsize{'.$size2.'}{'.$size2.'}\selectfont';
 print "$size2start\n" if $debug;
-my $size3=$gpown/$sc;
+my $size3=$gpown/$scale;
 my $size3start='{\fontsize{'.$size3.'}{'.$size3.'}\selectfont';
 print "$size3start\n" if $debug;
 
@@ -554,8 +555,8 @@ unless ($nobbfix)
 		}
 		close(FILE);
 		die "find no bounding box in ".$outname.".eps\n" unless $newdelta;
-		$sc=$sc*$olddelta/$newdelta;
-		die "Error at runing gp2eps\n" if system("$0 --bbrescale -s $sc $oldcommandline $ARGV[0]");
+		$scale=$scale*$olddelta/$newdelta;
+		die "Error at runing gp2eps\n" if system("$0 --bbrescale -s $scale $oldcommandline $ARGV[0]");
 	}
 	unlink($outname.".eps.orig");
 }

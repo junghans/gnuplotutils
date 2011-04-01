@@ -2,6 +2,11 @@ syntax: glob
 
 *~
 .*.swp
-doc/*.man
+*.man
+*.wiki
 
 Makefile
+CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+cmake_uninstall.cmake

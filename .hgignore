@@ -2,16 +2,6 @@ syntax: glob
 
 *~
 .*.swp
-doc/*.{1,man,html,gwiki,wiki}
+doc/*.man
 
 Makefile
-Makefile.in
-
-config.log
-config.status
-autom4te.cache/*
-.deps/*
-configure
-aclocal.m4
-missing
-install-sh

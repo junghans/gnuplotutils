@@ -33,4 +33,4 @@ if (TXT2TAGS_FOUND)
   add_custom_target(wiki DEPENDS ${WIKIPAGES})
 endif (TXT2TAGS_FOUND)
 
-install(PROGRAMS examples/demo.sh DESTINATION ${DATA})
+install(PROGRAMS extras/demo.sh DESTINATION ${DATA})

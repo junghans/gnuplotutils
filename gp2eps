@@ -68,6 +68,7 @@ my $gpown=10;
 my $termopts="color";
 my $nobbfix=undef;
 my $debug=undef;
+my $force=undef;
 my $gnuplot="gnuplot";
 my $bbox_add="bbox_add.pl";
 
@@ -100,7 +101,17 @@ sub printheader(*;$) {
   }
 }
 
+sub run_latex($) {
+  die "Could not find tex file '$_[0]'\n" unless( -f "$_[0]" );
+  die "tex file $_[0] does not end on .tex\n" unless $_[0] =~ /^(.*)\.tex$/;
+  my $trunc="$1";
+  die "Error at runing 'latex $_[0]' see $trunc.log for error\n" if system("latex -halt-on-error $_[0] > /dev/null 2> /dev/null");
+  unlink("$trunc.aux");
+  unlink("$trunc.log");
+}
+
 sub get_textwidth($) {
+  unlink("$tmpfile.tex") if $force;
   die "$tmpfile.tex is already and would be overwritten add --force if you are sue that you want that.\n" 
     if ( -r "$tmpfile.tex");
   open(TEXFILE,"> $tmpfile.tex") or die "can not open '$tmpfile.tex'\n";
@@ -113,10 +124,8 @@ sub get_textwidth($) {
   print TEXFILE 'GP2EPS'."\n";
   print TEXFILE '\end{document}'."\n";
   close(TEXFILE);
-  die "Error at runing latex\n" if system("latex -halt-on-error ".$tmpfile.".tex");
+  run_latex("$tmpfile.tex");
   unlink("$tmpfile.tex");
-  unlink("$tmpfile.aux");
-  unlink("$tmpfile.log");
   open(DVIFILE,"$tmpfile.dvi") or die "Could not open '$tmpfile.dvi'\n";
   my $tl=undef;
   while (<DVIFILE>) {
@@ -184,6 +193,7 @@ Makes a eps file out of a gnuplot script
                       Default: "$gnuplot"
 --bbox_add NAME       change the bbox_add command
                       Default: "$bbox_add"
+--force               force overwritting of all intermediate files
 --debug               keep .tex file for debugging (implies --nobbfix)
 --keep                keep .tex file for debugging 
 
@@ -312,6 +322,11 @@ END
 		$debug='yes';
 		$nobbfix='yes';
 	}
+	elsif ($ARGV[0] eq "--force")
+	{
+		shift(@ARGV);
+		$force='yes';
+	}
 	elsif ($ARGV[0] eq "--keep")
 	{
 		shift(@ARGV);
@@ -340,12 +355,9 @@ my $size3=$gpown/$scale;
 my $size3start='{\fontsize{'.$size3.'}{'.$size3.'}\selectfont';
 print "$size3start\n" if $debug;
 
-my $texname=undef;
-my $gpname=undef;
 print "Using file: '$ARGV[0]'\n" unless $quiet;
-$ARGV[0] =~ /^(.*)\.[^.]*?/ or die "File '$ARGV[0]' has not extension\n";
-$gpname=$1;
-$outname=$gpname unless $outname;
+$ARGV[0] =~ /^(.*)\.[^.]*?/ or die "File '$ARGV[0]' has no extension\n";
+$outname="$1" unless $outname;
 
 #show deps for makefiles, we need $output name
 if ($showdeps)
@@ -381,53 +393,37 @@ if ($showdeps)
 }
 
 #build tex file from gnuplot
-print "gp-file name : '".$gpname."'\n" unless $quiet;
 open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
-my $term=undef;
+unlink("$tmpfile.gp") if $force;
+die "$tmpfile.gp is already and would be overwritten add --force if you are sue that you want that.\n" if ( -r "$tmpfile.gp");
+open(NEWFILE,"> $tmpfile.gp") or die "Error at opening gp new file '$tmpfile.gp'\n";
+print NEWFILE "set term epslatex color\n";
+print NEWFILE "set output '$tmpfile.tex'\n";
+print NEWFILE "set lmargin 0\n";
+print NEWFILE "set rmargin 0\n";
+print NEWFILE "set tmargin 0\n";
+print NEWFILE "set bmargin 0\n";
 while (<FILE>)
 {
-	next if /^#/;
-	if (/set (out |ou |output)/)
-	{
-		if ($_ =~ / ["'](.+?)\.(eps|tex)["']/)
-		{
-			$texname=$1;
-			print "Found eps name '".$1.".eps\n";
-		}
-		else
-		{
-			die "file given in 'set output' does not end with .eps or .tex\n";
-		}
-	}
-	if (/set (t |term |terminal)/)
-	{
-		if ($_ =~ /epslatex/)
-		{
-			$term="epslatex";
-			print "Found term epslatex\n" unless $quiet;
-		}
-		else
-		{
-			die "'set term' is not 'epslatex'\n";
-		}
-	}
+  	#ignore term and outline in gp file
+	next if (/set (out |ou |output)/);
+	next if (/set (t |term |terminal)/);
+	print NEWFILE $_;
 }
 close(FILE);
+close(NEWFILE);
 
 $textwidth=get_textwidth($headerfile) if ($textwidth eq "auto");
-die "'set output' not found \n" unless $texname;
-die "'set term' not found \n" unless $term;
-die "Error: Output file in gp-file has the same name as output itself:$gpname.(eps|tex)\n" if $texname eq $gpname;
-die "Error at runing gnuplot\n" if system ("$gnuplot ".$ARGV[0]);
+die "Error at runing 'gnuplot $tmpfile.gp'\n" if system ("$gnuplot $tmpfile.gp");
+unlink("$tmpfile.gp") unless $debug;
 
-print "tex-file name : '$texname.tex'\n" unless $quiet;
-die "Error: name of tex-file is the same as output name\n" if $texname eq $outname;
+print "tex-file name : '$tmpfile.tex'\n" unless $quiet;
 print "output name : '$outname.eps'\n" unless $quiet;
 
 
 open (NEWTEXFILE,"> ".$outname.".tex")
 	or die "Error at opening new tex file\n";
-open(OLDTEXFILE,$texname.".tex")
+open(OLDTEXFILE,$tmpfile.".tex")
 	or die "Error at opening old tex file\n";
 if ($headerfile) {
   print "header file to use: '$headerfile'\n" unless $quiet;
@@ -509,16 +505,14 @@ while (<OLDTEXFILE>)
 print NEWTEXFILE '\end{document}'."\n";
 close(NEWTEXFILE);
 close(OLDTEXFILE);
-unlink($texname.".tex") if $gpname;
+unlink("$tmpfile.tex") unless $debug;
 
-die "Error at runing latex\n" if system("latex -halt-on-error ".$outname.".tex");
+run_latex("$outname.tex");
 unlink($outname.".tex") unless $debug;
-unlink($outname.".aux");
-unlink($outname.".log");
 
-die "Error at runing dvips\n" if system("dvips -E ".$outname.".dvi -o ".$outname.".eps");
-unlink($outname.".dvi");
-unlink($texname.".eps") if ($gpname and !$debug);
+die "Error at runing 'dvips-E $outname.dvi -o $outname.eps'\n" if system("dvips -E $outname.dvi -o $outname.eps > /dev/null 2> /dev/null");
+unlink("$outname.dvi");
+unlink("$tmpfile.eps") unless $debug;
 
 unless ($nobbfix)
 {

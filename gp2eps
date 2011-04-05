@@ -535,7 +535,8 @@ unless ($nobbfix)
 		{
 			if ($_ =~ /%%BoundingBox:\s(\d+)\s(\d+)\s(\d+)\s(\d+)/)
 			{
-				$olddelta=$3-$1;
+				#delta x= $3-$1 and $delta y= $4-$2, however for fonts the height matters
+				$olddelta=$4-$2;
 				last;
 			}
 		}
@@ -549,7 +550,8 @@ unless ($nobbfix)
 		{
 			if ($_ =~ /%%BoundingBox:\s(\d+)\s(\d+)\s(\d+)\s(\d+)/)
 			{
-				$newdelta=$3-$1;
+				#delta x= $3-$1 and $delta y= $4-$2, however for fonts the height matters
+				$newdelta=$4-$2;
 				last;
 			}
 		}

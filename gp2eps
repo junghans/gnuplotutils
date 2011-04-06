@@ -49,6 +49,7 @@
 #version 1.8.2,  03.07.10 -- fixed a bug in --deps
 #version 1.8.3,  12.12.10 -- added --showheader and --headerfile option
 #version 1.8.4,  21.03.11 -- --gv -> --view and improved --headerfile
+#version 2.0.0,  06.04.11 -- major rework, trashed a lot of the old crap
 use strict;
 
 $_=$0;
@@ -59,47 +60,25 @@ my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
 #Defaults
 my $quiet=undef;
 my $outname=undef;
-my $sizescale=2;
-my $scale=2;
+my $scale=0.5;
 my $fontscale=0.8;
 my $ratioscale=0.8;
 my $pointsize=10;
 my $gpown=10;
+my $term="set terminal epslatex standalone";
 my $termopts="color";
-my $nobbfix=undef;
 my $debug=undef;
 my $force=undef;
 my $gnuplot="gnuplot";
-my $bbox_add="bbox_add.pl";
 
-my $oldcommandline='';
 my $bbrescale=undef;
 my $viewer=undef;
 my $showdeps=undef;
-my $headerfile=undef;
-my $textwidth="auto";
+my $widthfile=undef;
+my $textwidth=12.7;
+my $ratio=1.42857143;
 
 my $tmpfile="gp2eps_tmp";
-sub printheader(*;$) {
-  die "printheader: Missing argument\n" unless (defined($_[0]));
-  my $fh=shift;
-  if (defined($_[0])) {
-    open(HEADERFILE,$_[0])
-      or die "Error at opening headerfile '$_[0]'\n";
-    while (<HEADERFILE>){
-      last if /^[^%]begin\{document\}/;
-      next if /\\input{.*?}/;
-      print $fh "$_";
-    }
-    close(HEADERFILE);
-  } else {
-    print $fh '\documentclass{report}'."\n";
-    print $fh '\usepackage{graphicx}'."\n";
-    print $fh '\usepackage{color}'."\n";
-    print $fh '\usepackage{amsmath}'."\n";
-    print $fh '\usepackage{psfrag}'."\n";
-  }
-}
 
 sub run_latex($) {
   die "Could not find tex file '$_[0]'\n" unless( -f "$_[0]" );
@@ -115,13 +94,16 @@ sub get_textwidth($) {
   die "$tmpfile.tex is already and would be overwritten add --force if you are sue that you want that.\n" 
     if ( -r "$tmpfile.tex");
   open(TEXFILE,"> $tmpfile.tex") or die "can not open '$tmpfile.tex'\n";
-  printheader(\*TEXFILE,$_[0]);
+  open(HEADERFILE,$_[0]) or die "Error at opening widthfile '$_[0]'\n";
+  while (<HEADERFILE>){
+      last if /^[^%]begin\{document\}/;
+      next if /\\input{.*?}/;
+      print TEXFILE "$_";
+  }
   print TEXFILE '\usepackage{layouts}'."\n";
   print TEXFILE '\begin{document}'."\n";
   print TEXFILE '\pagestyle{empty}'."\n";
-  print TEXFILE 'GP2EPS'."\n";
   print TEXFILE '\printinunitsof{cm}\prntlen{\textwidth}'."\n";
-  print TEXFILE 'GP2EPS'."\n";
   print TEXFILE '\end{document}'."\n";
   close(TEXFILE);
   run_latex("$tmpfile.tex");
@@ -162,7 +144,7 @@ Makes a eps file out of a gnuplot script
 -h, --help            Show this help message
 -q, --quiet           Do not show messages
                       except errors
--s, --scale X.X       scale of the image to text
+-s, --scale X.X       scale of the image to text (also see --textwidth)
 		      (should be the same as using in main tex file
                       \\includegraphics[width=X.X\\textwidth]{YYY.eps}, when s=X.X )
                       0.5=halfsides 1.0=normal
@@ -172,30 +154,26 @@ Makes a eps file out of a gnuplot script
                       default: $fontscale
 -p, --pointsize X.X   pointsize of the fonts
                       default: $pointsize
--r, --ratioscale X.X  change the ratio between size of labels
+    --ratioscale X.X  change the ratio between size of labels
                       (\\gplabel) and numbers (\\gpnumber)
                       default: $ratioscale
-    --headerfile FILE Read latex header from file
-                      (stops at \\begin{document})
-    --showheader      Show headerlines (from --headerfile or defaults)
--o FILE               give the output filename
+-t, --textwidth X.X   textwidth (in cm) of tex docment (use --widthfile if unknown)
+                      default: $textwidth cm
+-r, --ratio     X.X   ratio of the image (width/heigth)
+                      default: $ratio	   
+    --widthfile FILE  Get textwidth from this latex file
+-o, --output FILE     give the output filename
                       default: trunc of 1st gnuplot script
---gpown  X.X          give size of additional label '\\gpown'
+    --gpown  X.X      give size of additional label '\\gpown'
                       default: $gpown
---termopts OPTS       extra options to be given to 'set term epslatex'
+    --termopts OPTS   extra options to be given to '$term'
                       default: $termopts
---view VIEWER         view output with VIEWER at the end
---nobbfix             will not fix bounding box to a tight box
---bbrescale           used for correct fontsize after bounding box fix
-                      do NOT use this yourself
---deps                show makefile deps the eps file (implies --quiet)
---gnuplot NAME        change the gnuplot command
-                      Default: "$gnuplot"
---bbox_add NAME       change the bbox_add command
-                      Default: "$bbox_add"
---force               force overwritting of all intermediate files
---debug               keep .tex file for debugging (implies --nobbfix)
---keep                keep .tex file for debugging 
+    --view VIEWER     view output with VIEWER at the end
+    --deps            show makefile rule for the eps file (implies --quiet)
+    --gnuplot CMD     change the gnuplot command
+                      default: "$gnuplot"
+    --force           force overwritting of all intermediate files
+    --debug           keep .tex file for debugging
 
 Axis numbers are always scaled with 0.8 (change with -r option). Additional stuff to scale
 like the graph numbers can be marked with \\gpnumber.  Stuff to scale like labels can be
@@ -205,11 +183,10 @@ Send comments and bugs to: junghans\@mpip-mainz.mpg.de
 END
 		exit;
 	}
-	elsif ($ARGV[0] eq "-o")
+	elsif (($ARGV[0] eq "-o") or ($ARGV[0] eq "--output"))
 	{
 		shift(@ARGV);
 		$outname=shift(@ARGV);
-		$oldcommandline.=" -o $outname";
 	}
 	elsif (($ARGV[0] eq "-v") or ($ARGV[0] eq "--version"))
 	{
@@ -229,7 +206,6 @@ END
 	{
 		$quiet='yes';
 		shift(@ARGV);
-		$oldcommandline.=" -q";
 	}
 	elsif (($ARGV[0] eq "-s") or ($ARGV[0] eq "--scale"))
 	{
@@ -240,31 +216,26 @@ END
 	{
 		shift(@ARGV);
 		$fontscale=shift(@ARGV);
-		$oldcommandline.=" -f $fontscale";
 	}
 	elsif (($ARGV[0] eq "-p") or ($ARGV[0] eq "--pointsize"))
 	{
 		shift(@ARGV);
 		$pointsize=shift(@ARGV);
-		$oldcommandline.=" -p $pointsize";
 	}
-	elsif (($ARGV[0] eq "-r") or ($ARGV[0] eq "--ratioscale"))
+	elsif ($ARGV[0] eq "--ratioscale")
 	{
 		shift(@ARGV);
 		$ratioscale=shift(@ARGV);
-		$oldcommandline.=" -r $ratioscale";
 	}
-	elsif ($ARGV[0] eq "--headerfile")
+	elsif (($ARGV[0] eq "-t") or ($ARGV[0] eq "--textwidth"))
 	{
 	  shift(@ARGV);
-	  $headerfile=shift(@ARGV);
-	  $oldcommandline.=" --headerfile $headerfile";
+	  $textwidth=shift(@ARGV);
 	}
-	elsif ($ARGV[0] eq "--showheader")
+	elsif ($ARGV[0] eq "--widthfile")
 	{
 	  shift(@ARGV);
-	  printheader(\*STDOUT,$headerfile);
-	  exit;
+	  $widthfile=shift(@ARGV);
 	}
 	elsif ($ARGV[0] eq "--view")
 	{
@@ -275,23 +246,11 @@ END
 	{
 		shift(@ARGV);
 		$gpown=shift(@ARGV);
-		$oldcommandline.=" --gpown $gpown";
 	}
 	elsif ($ARGV[0] eq "--termopts")
 	{
 		shift(@ARGV);
 		$termopts=shift(@ARGV);
-		$oldcommandline.=" --termopts '$termopts'";
-	}
-	elsif ($ARGV[0] eq "--nobbfix")
-	{
-		shift(@ARGV);
-		$nobbfix='yes';
-	}
-	elsif ($ARGV[0] eq "--bbrescale")
-	{
-		shift(@ARGV);
-		$bbrescale='yes';
 	}
 	elsif ($ARGV[0] eq "--deps")
 	{
@@ -303,13 +262,6 @@ END
 	{
 		shift(@ARGV);
 		$gnuplot=shift(@ARGV);
-		$oldcommandline.=" --gnuplot $gnuplot";
-	}
-	elsif ($ARGV[0] eq "--bbox_add")
-	{
-		shift(@ARGV);
-		$bbox_add=shift(@ARGV);
-		$oldcommandline.=" --bbox_add $bbox_add";
 	}
 	elsif ($ARGV[0] eq "--gversion")
 	{
@@ -320,18 +272,12 @@ END
 	{
 		shift(@ARGV);
 		$debug='yes';
-		$nobbfix='yes';
+		$force='yes';
 	}
 	elsif ($ARGV[0] eq "--force")
 	{
 		shift(@ARGV);
 		$force='yes';
-	}
-	elsif ($ARGV[0] eq "--keep")
-	{
-		shift(@ARGV);
-		$debug='yes';
-		$oldcommandline.=" --keep";
 	}
 	else
 	{
@@ -345,17 +291,17 @@ die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
 print "Using scale=$scale fontscale=$fontscale pointsize=$pointsize and gpown=$gpown\n" unless $quiet;
 print "Using gnuplot: $gnuplot\n" unless $quiet;
-my $size=$pointsize/$scale*$fontscale;
+my $size=$pointsize*$fontscale;
 my $sizestart='{\fontsize{'.$size.'}{'.$size.'}\selectfont';
 print "$sizestart\n" if $debug;
-my $size2=$pointsize/$scale*$fontscale*$ratioscale;
+my $size2=$pointsize*$fontscale*$ratioscale;
 my $size2start='{\fontsize{'.$size2.'}{'.$size2.'}\selectfont';
 print "$size2start\n" if $debug;
-my $size3=$gpown/$scale;
+my $size3=$gpown;
 my $size3start='{\fontsize{'.$size3.'}{'.$size3.'}\selectfont';
 print "$size3start\n" if $debug;
 
-print "Using file: '$ARGV[0]'\n" unless $quiet;
+print "Using gnuplot script: '$ARGV[0]'\n" unless $quiet;
 $ARGV[0] =~ /^(.*)\.[^.]*?/ or die "File '$ARGV[0]' has no extension\n";
 $outname="$1" unless $outname;
 
@@ -392,12 +338,22 @@ if ($showdeps)
 	exit;
 }
 
+if ($widthfile) {
+  $textwidth=get_textwidth($widthfile);
+  print "Textwidth determined from $widthfile is $textwidth cm\n" unless $quiet;
+}else{
+  print "Textwidth is $textwidth cm\n" unless $quiet;
+}
+
 #build tex file from gnuplot
 open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
 unlink("$tmpfile.gp") if $force;
 die "$tmpfile.gp is already and would be overwritten add --force if you are sue that you want that.\n" if ( -r "$tmpfile.gp");
 open(NEWFILE,"> $tmpfile.gp") or die "Error at opening gp new file '$tmpfile.gp'\n";
-print NEWFILE "set term epslatex color\n";
+my $w=$scale*$textwidth;
+my $h=$scale*$textwidth/$ratio;
+print "Image will have the size $w cm x $h cm\n" unless $quiet;
+print NEWFILE "$term size $w cm,$h cm $termopts\n";
 print NEWFILE "set output '$tmpfile.tex'\n";
 print NEWFILE "set lmargin 0\n";
 print NEWFILE "set rmargin 0\n";
@@ -413,27 +369,22 @@ while (<FILE>)
 close(FILE);
 close(NEWFILE);
 
-$textwidth=get_textwidth($headerfile) if ($textwidth eq "auto");
 die "Error at runing 'gnuplot $tmpfile.gp'\n" if system ("$gnuplot $tmpfile.gp");
 unlink("$tmpfile.gp") unless $debug;
 
-print "tex-file name : '$tmpfile.tex'\n" unless $quiet;
-print "output name : '$outname.eps'\n" unless $quiet;
+print "Output file : '$outname.eps'\n" unless $quiet;
 
-
-open (NEWTEXFILE,"> ".$outname.".tex")
-	or die "Error at opening new tex file\n";
-open(OLDTEXFILE,$tmpfile.".tex")
-	or die "Error at opening old tex file\n";
-if ($headerfile) {
-  print "header file to use: '$headerfile'\n" unless $quiet;
-}
-printheader(\*NEWTEXFILE,$headerfile);
-print NEWTEXFILE '\newcommand{\gplabel}{}'."\n";
-print NEWTEXFILE '\newcommand{\gpnumber}{}'."\n";
-print NEWTEXFILE '\newcommand{\gpown}{}'."\n";
-print NEWTEXFILE '\begin{document}'."\n";
-print NEWTEXFILE '\pagestyle{empty}'."\n";
+open (NEWTEXFILE,"> $outname.tex") or die "Error at opening new tex file\n";
+open(OLDTEXFILE,"$tmpfile.tex")	or die "Error at opening old tex file\n";
+unlink("$tmpfile.cfg") if $force;
+die "$tmpfile.cfg is already and would be overwritten add --force if you are sue that you want that.\n" if ( -r "$tmpfile.cfg");
+open (CONFFILE,"> $tmpfile.cfg") or die "Error at opening new tex file\n";
+print CONFFILE '\usepackage{amsmath}'."\n";
+print CONFFILE '\usepackage{psfrag}'."\n";
+print CONFFILE '\newcommand{\gplabel}{}'."\n";
+print CONFFILE '\newcommand{\gpnumber}{}'."\n";
+print CONFFILE '\newcommand{\gpown}{}'."\n";
+close(CONFFILE);
 
 my @sizelines;
 my @size2lines;
@@ -499,6 +450,7 @@ while (<OLDTEXFILE>)
 			}
 		}
 		$put=undef;
+		s/gnuplot\.cfg/$tmpfile\.cfg/;
 		print NEWTEXFILE $_ unless $_ =~ /\\endinput/
 	}
 }
@@ -508,54 +460,12 @@ close(OLDTEXFILE);
 unlink("$tmpfile.tex") unless $debug;
 
 run_latex("$outname.tex");
-unlink($outname.".tex") unless $debug;
+unlink("$tmpfile.cfg") unless $debug;
+unlink("$outname.tex") unless $debug;
 
-die "Error at runing 'dvips-E $outname.dvi -o $outname.eps'\n" if system("dvips -E $outname.dvi -o $outname.eps > /dev/null 2> /dev/null");
+die "Error at runing 'dvips $outname.dvi -o $outname.eps'\n" if system("dvips $outname.dvi -o $outname.eps > /dev/null 2> /dev/null");
 unlink("$outname.dvi");
-unlink("$tmpfile.eps") unless $debug;
-
-unless ($nobbfix)
-{
-	$bbox_add="./$bbox_add" if ( -f "./$bbox_add" );
-	print "Using bbox_add: $bbox_add\n" unless $quiet;
- 	die "Error at runing $bbox_add\n" if system("$bbox_add --keep $outname.eps");
-	#calculate fontsize in pic without white border, do this only one time :-)
-	unless ($bbrescale)
-	{
-		open(FILE,$outname.".eps.orig")
-			or die "can not open ".$outname.".eps.orig\n";
-		my $olddelta=undef;
-		while (<FILE>)
-		{
-			if ($_ =~ /%%BoundingBox:\s(\d+)\s(\d+)\s(\d+)\s(\d+)/)
-			{
-				#delta x= $3-$1 and $delta y= $4-$2, however for fonts the height matters
-				$olddelta=$4-$2;
-				last;
-			}
-		}
-		close(FILE);
-		die "find no bounding box in ".$outname.".eps.orig\n" unless $olddelta;
-		
-		open(FILE,$outname.".eps")
-			or die "can not open ".$outname.".eps\n";
-		my $newdelta=undef;
-		while (<FILE>)
-		{
-			if ($_ =~ /%%BoundingBox:\s(\d+)\s(\d+)\s(\d+)\s(\d+)/)
-			{
-				#delta x= $3-$1 and $delta y= $4-$2, however for fonts the height matters
-				$newdelta=$4-$2;
-				last;
-			}
-		}
-		close(FILE);
-		die "find no bounding box in ".$outname.".eps\n" unless $newdelta;
-		$scale=$scale*$olddelta/$newdelta;
-		die "Error at runing gp2eps\n" if system("$0 --bbrescale -s $scale $oldcommandline $ARGV[0]");
-	}
-	unlink($outname.".eps.orig");
-}
+unlink("$tmpfile-inc.eps") unless $debug;
 
 if ($viewer)
 {

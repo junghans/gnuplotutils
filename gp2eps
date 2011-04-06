@@ -368,10 +368,10 @@ open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
 unlink("$tmpfile.gp") if $force;
 die "$tmpfile.gp is already and would be overwritten add --force if you are sue that you want that.\n" if ( -r "$tmpfile.gp");
 open(NEWFILE,"> $tmpfile.gp") or die "Error at opening gp new file '$tmpfile.gp'\n";
-my $w=$scale*$textwidth;
-my $h=$scale*$textwidth/$ratio;
-print "Image will have the size $w cm x $h cm\n" unless $quiet;
-print NEWFILE "$term size $w cm,$h cm $termopts\n";
+my $w=$scale*$textwidth."cm";
+my $h=$scale*$textwidth/$ratio."cm";
+print "Image will have the size $w x $h\n" unless $quiet;
+print NEWFILE "$term size $w,$h $termopts\n";
 print NEWFILE "set output '$tmpfile.tex'\n";
 if (@margins) {
   print NEWFILE "set lmargin ".shift(@margins)."\n";
@@ -474,7 +474,6 @@ while (<OLDTEXFILE>)
 		print NEWTEXFILE $_ unless $_ =~ /\\endinput/
 	}
 }
-print NEWTEXFILE '\end{document}'."\n";
 close(NEWTEXFILE);
 close(OLDTEXFILE);
 unlink("$tmpfile.tex") unless $debug;

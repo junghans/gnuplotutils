@@ -268,7 +268,7 @@ END
 	elsif ($ARGV[0] eq "--margins")
 	{
 		shift(@ARGV);
-                @margins=split(/,/,shift(@ARGV));
+                @margins=split(/,/,shift(@ARGV).",0");
 	}
 	elsif ($ARGV[0] eq "--deps")
 	{

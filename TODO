@@ -1,24 +1,17 @@
 * manpages
   * tricktex manpage
-* replace bbox_add by internal function
-* rename --gv to --view and add --viewer
+* replace bbox_add by internal function in tricktex
 * make a release with readme -> 1.0
 * README 
   * some intro words
 * doc
   * in txt2tags or latex
-  * with some nice plots from papers (votca)
+  * with some nice plots from papers
 * gp2eps
-  * determine \textwidth using layout package and 
-    * '\printinunitsof{cm}\prntlen{\textwidth}' command
-    * use this length in set terminal size xxx,3.5/5*xxx
-  * allow epslatex standalone terminal -> header=none
-  * add tex2eps functionality (--tex option + guess for $0)
-    * header=none (normal gnuplot tex file have no headers)
+  * add tricktex functionality (--tex option + guess for $0) -> may no realy useful
   * more terminal (like tkiz)
-  * add option to calc old/newdelta out of dy ($4-$2) instead of dx ($3-$1)
-  * add --multiplot option (on top, side by side, inlay)
-  * build-in gp2eps2 stuff
-    * add default 'set output' and 'set terminal' if not there
-    * add size option to terminal with real size (see above)
-
+  * add --multiplot option
+    * layout option 2,1 1,3, ...
+    * label ( (a),(b),(c) at graph 0.05,0.95) option
+* gplot
+  * make ',' a seperator for files

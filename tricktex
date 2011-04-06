@@ -287,4 +287,3 @@ if ($gv)
 {
 	die "Error at runing gv\n" if system("gv -watch $output.$ending &");
 }
-#fs md5sum af0643a371fc90f4ccc23f8488a51c24

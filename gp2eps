@@ -351,6 +351,10 @@ if ($showdeps)
     			}
 			$_=$line;
   		}
+		#?: in (?:\[.*?\]) means: don't name it \1
+		if (/includegraphics(?:\[.*?\])?\{(.*?)\}/) {
+			$deps.=" $1";
+		}
 	}
 	print "$deps\n";
 	exit;

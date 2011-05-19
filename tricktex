@@ -30,6 +30,7 @@
 #version 0.53, 18.04.08 -- added --tight and change default behavious
 #version 0.54, 25.04.08 -- better version
 #version 0.55, 13.10.08 -- added GPL header
+#version 0.5.6,  19.05.11 -- removed --pdf option
 
 use strict;
 
@@ -37,9 +38,7 @@ $_=$0;
 s#^.*/##;
 my $progname=$_;
 my $usage="Usage: $progname [OPTIONS] tex code\nHelp with --help\n";
-my $output="myfile";
-my $ending="eps";
-my $outputpattern="$output\.$ending";
+my $output="myfile.eps";
 my @packages;
 my $equ=undef;
 my $keep=undef;
@@ -47,7 +46,7 @@ my $pic=undef;
 my $pdf=undef;
 my $tight=undef;
 my $nrpic=0;
-my $gv=undef;
+my $viewer=undef;
 my $textwidth=1.0;
 my $angle=0;
 
@@ -73,7 +72,7 @@ Options:
 -h, --help            Show this help message
 -p NAME               Add package
 -o FILE               Give the output filename
-                      default: $output.$ending
+                      default: $output
 --equ                 Run in equation mode
 --keep                Do not delete the tex file
 --pic                 Run in Picture mode
@@ -83,8 +82,7 @@ Options:
                       (implies --pic)
                       default: $textwidth (*\\textwidth)
 -r, --rotate          rotate pics by 90 degree
---pdf                 Also build pdf
---gv                   Run gv at the end
+--view VIEWER         Run VIEWER at the end
 
 Examples: $progname --equ -o test.eps \'\\omega\'
           $progname --equ  -o test \\\\omega
@@ -96,33 +94,9 @@ Send comments and bugs to: junghans[at]mpip-mainz.mpg.de
 END
 		exit;
 	}
-	elsif ($ARGV[0] eq "-o")
-	{
+	elsif ($ARGV[0] eq "-o"){
 		shift(@ARGV);
 		$output=shift(@ARGV);
-		my $pattern;
-		if ( $output =~ /\.(.*?)$/)
-		{
-			$ending=$1;
-			die "Can not handle this ending ($ending)!\n" unless (($ending eq "eps")or($ending eq "ps"));
-			$pattern="(.*?)\.$ending";
-			$outputpattern="\.$ending";
-		}
-		else
-		{
-			print "No ending given use .eps\n";
-			$pattern="(.*?)";
-			$outputpattern="";
-		}
-		if ( $output =~ /^$pattern$/ )
-		{
-			$output=$1;
-			$outputpattern=$output.$outputpattern;
-		}
-		else
-		{
-			die "Can not determine file name\n";
-		}
 	}
 	elsif ($ARGV[0] eq "-p")
 	{
@@ -143,36 +117,28 @@ END
 	{
 		shift(@ARGV);
 		$pic='yes';
-		$ending="ps";
 	}
 	elsif (($ARGV[0] eq "-w") or ($ARGV[0] eq "--width"))
 	{
 		shift(@ARGV);
 		$pic='yes';
-		$ending="ps";
 		$textwidth=shift(@ARGV);
 	}
 	elsif (($ARGV[0] eq "-r") or ($ARGV[0] eq "--rotate"))
 	{
 		shift(@ARGV);
 		$pic='yes';
-		$ending="ps";
 		$angle=90;
-	}
-	elsif ($ARGV[0] eq "--pdf")
-	{
-		shift(@ARGV);
-		$pdf='yes';
 	}
 	elsif (($ARGV[0] eq "--tight")  or ($ARGV[0] eq "-t"))
 	{
 		shift(@ARGV);
 		$tight='yes';
 	}
-	elsif ($ARGV[0] eq "--gv")
+	elsif ($ARGV[0] eq "--view")
 	{
 		shift(@ARGV);
-		$gv='yes';
+		$viewer=shift(@ARGV);
 	}
 	elsif (($ARGV[0] eq "-v") or ($ARGV[0] eq "--version"))
 	{
@@ -183,7 +149,7 @@ END
 	}
 	elsif ($ARGV[0] eq "--hg")
 	{
-		my $message=`perl -ne 'print "\$1\n" if /^#version .* -- (.*)\$/' $0 | perl -ne 'print if eof'`;
+		my $message=`perl -ne 'print "\$1\n" if /^#version .*? -- (.*)\$/' $0 | perl -ne 'print if eof'`;
 		chomp($message);
 		print "$progname: $message\n";
 		exit;
@@ -199,7 +165,26 @@ die "${usage}Error: no tex code given\n" unless $#ARGV>-1;
 
 die "What do you want equ or pic mode?\nCheat the text mode with \$something\$ !\n" if ($pic and $equ);
 
-open(FILE,"> $output.tex") or
+my $ending;
+if ( $output =~ /\.(.*?)$/){
+  $ending=$1;
+  die "Can not handle this ending ($ending)!\n" unless (($ending eq "eps")or($ending eq "ps")or($ending eq "pdf"));
+}else{
+  print "No ending given use .eps\n";
+  $ending="eps";
+  $output="$output.eps";
+}
+my $ending2="$ending";
+$ending2="eps" if ( $ending eq "pdf");
+
+my $trunc;
+if ( $output =~ /^(.*)\.$ending$/){
+  $trunc=$1;
+}else{
+  die "Could not get trunc from $output\n";
+}
+
+open(FILE,"> $trunc.tex") or
 	die "Error at opening file\n";
 
 print FILE '\documentclass[10pt,a4paper,onecolumn]{article}'."\n";
@@ -212,78 +197,58 @@ print FILE '\begin{document}'."\n";
 print FILE '\pagestyle{empty}'."\n";
 print FILE '\noindent'."\n";
 print FILE '\['."\n" if($equ);
-if ($pic)
-{
-	foreach (@ARGV)
-	{
-		if ($_ !~ /$outputpattern/ )
-		{
-			if ( $_ =~ /\.(eps|ps)$/ )
-			{
-				if ( -r $_ )
-				{
-					print FILE '\includegraphics[angle='.$angle.',width='.$textwidth.'\textwidth]{'.$_."}\n";
-					$nrpic++;
-				}
-				else
-				{
-					print "Given picture is not readable -> ignored!\n";
-				}
-			}
-			else
-			{
-				print "Given picture should end with eps or ps -> ignored !\n";
-			}
-		}
-		else
-		{
-			print "Given picture is equal to output file -> ignored!\n";
-		}
+if ($pic){
+  foreach (@ARGV){
+    if ($_ != "$output" ){
+      print "xxx $output yyy $_\n";
+      if ( $_ =~ /\.(eps|ps)$/ ){
+	if ( -r $_ ){
+	  print FILE '\includegraphics[angle='.$angle.',width='.$textwidth.'\textwidth]{'.$_."}\n";
+	  $nrpic++;
+	}else{ 
+	  print "Given picture is not readable -> ignored!\n";
 	}
-}
-else
-{
-	foreach (@ARGV)
-	{
-		print FILE $_." ";
-	}
-	print FILE "\n";
+      }else{
+	print "Given picture should end with eps or ps -> ignored !\n";
+      }
+    }else{
+      print "Given picture is equal to output file -> ignored!\n";
+    }
+  }
+}else{
+  foreach (@ARGV){
+    print FILE $_." ";
+  }
+  print FILE "\n";
 }
 print FILE '\]'."\n" if ($equ);
 print FILE '\end{document}'."\n";
 close(FILE);
 if ( ($pic) and ($nrpic==0))
 {
-	unlink("$output.tex") unless $keep;
+	unlink("$trunc.tex") unless $keep;
 	die "Picture mode and no valid picture found -> exit!\n";
 }
-$_=system("latex -halt-on-error $output.tex");
-unlink("$output.tex") unless $keep;
-unlink("$output.aux");
-unlink("$output.log");
+$_=system("latex -halt-on-error $trunc.tex");
+unlink("$trunc.tex") unless $keep;
+unlink("$trunc.aux");
+unlink("$trunc.log");
 die "Error at running latex\n" if $_;
-if ($tight)
-{
-	die "Error at running dvips\n" if system("dvips -E $output.dvi -o $output.$ending");
+#no tight box for multiple pics
+if(($tight)and($nrpic<2)){
+   die "Error at running dvips\n" if system("dvips -E $trunc.dvi -o $trunc.$ending2");
+} else {
+  die "Error at running dvips\n" if system("dvips $trunc.dvi -o $trunc.$ending2");
 }
-else
-{
-	#no tight box for multiple pics
-	die "Error at running dvips\n" if system("dvips $output.dvi -o $output.$ending");
-}
-unlink("$output.dvi");
-if ($pdf)
-{
-	die "Error at running ps2pdf\n" if system("ps2pdf $output.$ending");
-}
-
-if ($tight)
-{
-	#no tight box for multiple pics
-	die "Error at runing bbbox_add.pl\n" if system("bbox_add.pl $output.$ending");
+unlink("$trunc.dvi");
+if ($ending eq "pdf"){
+	die "Error at running ps2pdf\n" if system("ps2pdf $trunc.$ending2");
+	unlink("$trunc.$ending2");
+}elsif(($tight)and ($nrpic<2)){
+  #no tight box for multiple pics
+  die "Error at runing bbbox_add.pl\n" if system("bbox_add.pl $output.$ending");
 }
 
-if ($gv)
-{
-	die "Error at runing gv\n" if system("gv -watch $output.$ending &");
+if ($viewer){
+  die "Error at runing $viewer\n" if system("$viewer $output.$ending &");
 }

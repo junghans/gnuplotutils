@@ -50,6 +50,7 @@
 #version 1.8.3,  12.12.10 -- added --showheader and --headerfile option
 #version 1.8.4,  21.03.11 -- --gv -> --view and improved --headerfile
 #version 2.0.0,  06.04.11 -- major rework, trashed a lot of the old crap
+#version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm 
 use strict;
 
 $_=$0;
@@ -238,6 +239,11 @@ END
 	{
 		shift(@ARGV);
 		$ratioscale=shift(@ARGV);
+	}
+	elsif (($ARGV[0] eq "-r") or ($ARGV[0] eq "--ratio"))
+	{
+		shift(@ARGV);
+		$ratio=shift(@ARGV);
 	}
 	elsif (($ARGV[0] eq "-t") or ($ARGV[0] eq "--textwidth"))
 	{
@@ -486,8 +492,8 @@ run_latex("$outname.tex");
 unlink("$tmpfile.cfg") unless $debug;
 unlink("$outname.tex") unless $debug;
 
-die "Error at runing 'dvips $outname.dvi -o $outname.eps'\n" if system("dvips $outname.dvi -o $outname.eps > /dev/null 2> /dev/null");
-unlink("$outname.dvi");
+die "Error at runing 'dvips $outname.dvi -c $w,$h -o -t portrait $outname.eps'\n" if system("dvips $outname.dvi -o $outname.eps > /dev/null 2> /dev/null");
+unlink("$outname.dvi") unless $debug;
 unlink("$tmpfile-inc.eps") unless $debug;
 
 if ($viewer)

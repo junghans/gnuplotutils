@@ -199,8 +199,7 @@ print FILE '\noindent'."\n";
 print FILE '\['."\n" if($equ);
 if ($pic){
   foreach (@ARGV){
-    if ($_ != "$output" ){
-      print "xxx $output yyy $_\n";
+    if ($_ ne "$output" ){
       if ( $_ =~ /\.(eps|ps)$/ ){
 	if ( -r $_ ){
 	  print FILE '\includegraphics[angle='.$angle.',width='.$textwidth.'\textwidth]{'.$_."}\n";
@@ -209,10 +208,10 @@ if ($pic){
 	  print "Given picture is not readable -> ignored!\n";
 	}
       }else{
-	print "Given picture should end with eps or ps -> ignored !\n";
+	print "Given picture ($_) should end with eps or ps -> ignored !\n";
       }
     }else{
-      print "Given picture is equal to output file -> ignored!\n";
+      print "Given picture ($_) is equal to output file -> ignored!\n";
     }
   }
 }else{

@@ -51,6 +51,7 @@
 #version 1.8.4,  21.03.11 -- --gv -> --view and improved --headerfile
 #version 2.0.0,  06.04.11 -- major rework, trashed a lot of the old crap
 #version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm
+#version 2.0.2,  24.05.11 -- remove gnuplots pdfmarks 
 
 use strict;
 
@@ -417,12 +418,27 @@ print CONFFILE '\newcommand{\gpnumber}{}'."\n";
 print CONFFILE '\newcommand{\gpown}{}'."\n";
 close(CONFFILE);
 
+open (EPSFILE, "$tmpfile-inc.eps") or die "Error at opening '$tmpfile-inc.eps'\n"; 
+open (NEWEPSFILE, "> $tmpfile-inc2.eps") or die "Error at opening '$tmpfile-inc.eps'\n"; 
+while (<EPSFILE>) {
+  #remove gnuplot nasty pdfmarks
+  s/\s*\/(Subject|Creator|Author|CreationDate)\s+\(.*\)/% $&/;
+  s/\s*\/DOCINFO\s+pdfmark/% $&/;
+  print NEWEPSFILE $_;
+}
+close(EPSFILE);
+close(NEWEPSFILE);
+unlink("$tmpfile-inc.eps") unless $debug;
+
 my @sizelines;
 my @size2lines;
 my @size3lines;
 my $put=undef;
 while (<OLDTEXFILE>)
 {
+	s/gnuplot\.cfg/$tmpfile\.cfg/;
+	s/\\usepackage\[(.*)\]{geometry}/\\usepackage[dvips,$1]{geometry}/;
+	s/$tmpfile-inc/$&2/;
 	# in the put block of the tex file
 	if ( $_ =~ /\\put/ )
 	{
@@ -481,8 +497,6 @@ while (<OLDTEXFILE>)
 			}
 		}
 		$put=undef;
-		s/gnuplot\.cfg/$tmpfile\.cfg/;
-		s/\\usepackage\[(.*)\]{geometry}/\\usepackage[dvips,\1]{geometry}/;
 		print NEWTEXFILE $_ unless $_ =~ /\\endinput/
 	}
 }
@@ -496,7 +510,7 @@ unlink("$outname.tex") unless $debug;
 
 die "Error at runing 'dvips $outname.dvi -T $w,$h -o $outname.eps'\n" if system("dvips -T $w,$h -o $outname.eps $outname.dvi > /dev/null 2> /dev/null");
 unlink("$outname.dvi") unless $debug;
-unlink("$tmpfile-inc.eps") unless $debug;
+unlink("$tmpfile-inc2.eps") unless $debug;
 
 if ($viewer)
 {

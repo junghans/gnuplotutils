@@ -50,7 +50,8 @@
 #version 1.8.3,  12.12.10 -- added --showheader and --headerfile option
 #version 1.8.4,  21.03.11 -- --gv -> --view and improved --headerfile
 #version 2.0.0,  06.04.11 -- major rework, trashed a lot of the old crap
-#version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm 
+#version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm
+
 use strict;
 
 $_=$0;
@@ -481,6 +482,7 @@ while (<OLDTEXFILE>)
 		}
 		$put=undef;
 		s/gnuplot\.cfg/$tmpfile\.cfg/;
+		s/\\usepackage\[(.*)\]{geometry}/\\usepackage[dvips,\1]{geometry}/;
 		print NEWTEXFILE $_ unless $_ =~ /\\endinput/
 	}
 }
@@ -492,7 +494,7 @@ run_latex("$outname.tex");
 unlink("$tmpfile.cfg") unless $debug;
 unlink("$outname.tex") unless $debug;
 
-die "Error at runing 'dvips $outname.dvi -c $w,$h -o -t portrait $outname.eps'\n" if system("dvips $outname.dvi -o $outname.eps > /dev/null 2> /dev/null");
+die "Error at runing 'dvips $outname.dvi -T $w,$h -o $outname.eps'\n" if system("dvips -T $w,$h -o $outname.eps $outname.dvi > /dev/null 2> /dev/null");
 unlink("$outname.dvi") unless $debug;
 unlink("$tmpfile-inc.eps") unless $debug;
 

@@ -15,8 +15,8 @@ find_package(TXT2TAGS)
 configure_file(${CMAKE_MODULE_PATH}/cmake_uninstall.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake IMMEDIATE @ONLY)
 add_custom_target(uninstall COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
 
-foreach(PROG gp2eps gplot)
-  if (TXT2TAGS_FOUND)
+foreach(PROG gp2eps gplot tricktex)
+  if (TXT2TAGS_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/${PROG}.t2t)
     add_custom_command(OUTPUT ${PROG}.man 
       COMMAND ${TXT2TAGS_EXECUTABLE} -q -t man -i ${CMAKE_SOURCE_DIR}/${PROG}.t2t -o ${PROG}.man)
     list(APPEND MANPAGES ${PROG}.man)
@@ -24,7 +24,7 @@ foreach(PROG gp2eps gplot)
     add_custom_command(OUTPUT ${PROG}.wiki 
       COMMAND ${TXT2TAGS_EXECUTABLE} -q -t gwiki -i ${CMAKE_SOURCE_DIR}/${PROG}.t2t -o ${PROG}.wiki)
     list(APPEND WIKIPAGES ${PROG}.wiki)
-  endif (TXT2TAGS_FOUND)
+  endif (TXT2TAGS_FOUND AND EXISTS ${CMAKE_SOURCE_DIR}/${PROG}.t2t)
   install(PROGRAMS ${PROG} DESTINATION bin)
 endforeach(PROG)
 

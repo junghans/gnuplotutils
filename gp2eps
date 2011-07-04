@@ -52,6 +52,7 @@
 #version 2.0.0,  06.04.11 -- major rework, trashed a lot of the old crap
 #version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm
 #version 2.0.2,  24.05.11 -- remove gnuplots pdfmarks 
+#version 2.0.3,  24.05.11 -- added --multi and also XXX% in --textwidth
 
 use strict;
 
@@ -71,6 +72,7 @@ my $gpown=10;
 my $term="set terminal epslatex standalone";
 my $termopts="color";
 my @margins;
+my @multi=(1,1);
 my $debug=undef;
 my $force=undef;
 my $gnuplot="gnuplot";
@@ -174,8 +176,10 @@ Makes a eps file out of a gnuplot script
                       default: $textwidth cm
 -r, --ratio     X.X   ratio of the image (width/heigth)
                       default: $ratio	   
-    --margin XXX      margin of the images of the image (comma separeted numbers l,r,t,b)
-                      default: auto	   
+    --margin XXX      margin of the images of the image (comma separeted numbers l,r,t,b - empty = auto)
+                      default: auto
+    --multi XXX       This is a multiplot (comma separated number x,y - empty = auto)
+		      default: $multi[0],$multi[1]	   
     --widthfile FILE  Get textwidth from this latex file
 -o, --output FILE     give the output filename
                       default: trunc of 1st gnuplot script
@@ -277,6 +281,13 @@ END
 	{
 		shift(@ARGV);
                 @margins=split(/,/,shift(@ARGV).",0");
+		die "Not enough values after --margins, I got $#margins, but need 4\n" if $#margins < 4;
+	}
+	elsif ($ARGV[0] eq "--multi")
+	{
+		shift(@ARGV);
+                @multi=split(/,/,shift(@ARGV).",1");
+		die "Not enough values after --multi, I got $#multi, but need 4\n" if $#multi < 2;
 	}
 	elsif ($ARGV[0] eq "--deps")
 	{
@@ -380,8 +391,8 @@ open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
 unlink("$tmpfile.gp") if $force;
 die "$tmpfile.gp is already and would be overwritten add --force if you are sue that you want that.\n" if ( -r "$tmpfile.gp");
 open(NEWFILE,"> $tmpfile.gp") or die "Error at opening gp new file '$tmpfile.gp'\n";
-my $w=$scale*$textwidth."cm";
-my $h=$scale*$textwidth/$ratio."cm";
+my $w=$multi[0]*$scale*$textwidth."cm";
+my $h=$multi[1]*$scale*$textwidth/$ratio."cm";
 print "Image will have the size $w x $h\n" unless $quiet;
 print NEWFILE "$term size $w,$h $termopts\n";
 print NEWFILE "set output '$tmpfile.tex'\n";

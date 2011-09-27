@@ -53,6 +53,7 @@
 #version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm
 #version 2.0.2,  24.05.11 -- remove gnuplots pdfmarks 
 #version 2.0.3,  24.05.11 -- added --multi and also XXX% in --textwidth
+#version 2.1.0,  24.05.11 -- removed --fontscale, too confusing
 
 use strict;
 
@@ -65,8 +66,7 @@ my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
 my $quiet=undef;
 my $outname=undef;
 my $scale=0.5;
-my $fontscale=0.8;
-my $ratioscale=0.8;
+my $ratioscale=1.0;
 my $pointsize=10;
 my $gpown=10;
 my $term="set terminal epslatex standalone";
@@ -164,9 +164,6 @@ Makes a eps file out of a gnuplot script
                       \\includegraphics[width=X.X\\textwidth]{YYY.eps}, when s=X.X )
                       0.5=halfsides 1.0=normal
                       default: $scale
--f, --fontscale X.X   scale for the fonts (to pointsize)
-                      1.0=normal 0.8=footnote
-                      default: $fontscale
 -p, --pointsize X.X   pointsize of the fonts
                       default: $pointsize
     --ratioscale X.X  change the ratio between size of labels
@@ -230,11 +227,6 @@ END
 	{
 		shift(@ARGV);
 		$scale=shift(@ARGV);
-	}
-	elsif (($ARGV[0] eq "-f") or ($ARGV[0] eq "--fontscale"))
-	{
-		shift(@ARGV);
-		$fontscale=shift(@ARGV);
 	}
 	elsif (($ARGV[0] eq "-p") or ($ARGV[0] eq "--pointsize"))
 	{
@@ -326,12 +318,12 @@ END
 die "No file given\n$usage\n" unless $#ARGV > -1;
 die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
-print "Using scale=$scale fontscale=$fontscale pointsize=$pointsize and gpown=$gpown\n" unless $quiet;
+print "Using scale=$scale pointsize=$pointsize and gpown=$gpown\n" unless $quiet;
 print "Using gnuplot: $gnuplot\n" unless $quiet;
-my $size=$pointsize*$fontscale;
+my $size=$pointsize;
 my $sizestart='{\fontsize{'.$size.'}{'.$size.'}\selectfont';
 print "$sizestart\n" if $debug;
-my $size2=$pointsize*$fontscale*$ratioscale;
+my $size2=$pointsize*$ratioscale;
 my $size2start='{\fontsize{'.$size2.'}{'.$size2.'}\selectfont';
 print "$size2start\n" if $debug;
 my $size3=$gpown;

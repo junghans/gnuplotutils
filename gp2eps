@@ -53,7 +53,7 @@
 #version 2.0.1,  23.05.11 -- bug fix (-r was not parsed) + dvips bug for textwi > 16cm
 #version 2.0.2,  24.05.11 -- remove gnuplots pdfmarks 
 #version 2.0.3,  24.05.11 -- added --multi and also XXX% in --textwidth
-#version 2.1.0,  24.05.11 -- removed --fontscale, too confusing
+#version 2.1.0,  27.05.11 -- removed --fontscale, too confusing
 
 use strict;
 

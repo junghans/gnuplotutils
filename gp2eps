@@ -54,6 +54,7 @@
 #version 2.0.2,  24.05.11 -- remove gnuplots pdfmarks 
 #version 2.0.3,  24.05.11 -- added --multi and also XXX% in --textwidth
 #version 2.1.0,  27.05.11 -- removed --fontscale, too confusing
+#version 2.1.1,  18.11.11 -- added support for load in --deps
 
 use strict;
 
@@ -337,38 +338,47 @@ $outname="$1" unless $outname;
 #show deps for makefiles, we need $output name
 if ($showdeps)
 {
-	my $deps="$outname.eps: $ARGV[0]";
-	open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
-	while (<FILE>)
-	{
-	  	#in gp file
-	  	#concat line ending with \
-		while ((/(.*)\\$/) and defined(my $line=<FILE>))
-		{
-			$_=$1.$line;
-	  	}
-		#ignore comment lines
-  		next if /^#/;
-		#line starting with plot, splot, replot
-  		if (/^\s*(re|s)?plot/)
-		{
-		  	#save old line, we cannot be sure there is not includegraphics in plot command
-    			my $line=$_;
-			#plot [xx:xx] or , can stand before filename in "" or ''
-    			while (s/(?:plot(?:\s*\[.*\])?|,)\s*(['"])([^\1]*?)(\1)//)
-			{
-				#and inline command "<xxx " should be ignored
-				$deps.=" $2" if ($2 !~ /^</);
-    			}
-			$_=$line;
-  		}
-		#?: in (?:\[.*?\]) means: don't name it \1
-		if (/includegraphics(?:\[.*?\])?\{(.*?)\}/) {
-			$deps.=" $1";
-		}
-	}
-	print "$deps\n";
-	exit;
+  my $deps="$outname.eps: $ARGV[0]";
+  my @files;
+  push(@files,$ARGV[0]);
+  while (defined(my $file=pop(@files))) {
+    open(FILE,$file) or die "Error at opening gp file '$file'\n";
+    while (<FILE>)
+    {
+      #in gp file
+      #concat line ending with \
+      while ((/(.*)\\$/) and defined(my $line=<FILE>))
+      {
+      	$_=$1.$line;
+      }
+      #ignore comment lines
+      next if /^#/;
+      #line starting with plot, splot, replot
+      if (/^\s*(re|s)?plot/)
+      {
+         #save old line, we cannot be sure there is not includegraphics in plot command
+      	 my $line=$_;
+      	 #plot [xx:xx] or , can stand before filename in "" or ''
+      	 while (s/(?:plot(?:\s*\[.*\])?|,)\s*(['"])([^\1]*?)(\1)//)
+      	 {
+      	   #and inline command "<xxx " should be ignored
+      	   $deps.=" $2" if ($2 !~ /^</);
+      	 }
+      	 $_=$line;
+      }
+      #?: in (?:\[.*?\]) means: don't name it \1
+      if (/includegraphics(?:\[.*?\])?\{(.*?)\}/) {
+      	$deps.=" $1";
+      }
+      if (/load\s*(['"])([^\1]*?)(\1)/) {
+	die "Cirular deps (multiple times $1)\n" if ($deps =~ / ($2) /);
+      	$deps.=" $2";
+	push(@files,$2);
+      }
+    }
+  }
+  print "$deps\n";
+  exit;
 }
 
 if ($widthfile) {

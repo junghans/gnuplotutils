@@ -8,8 +8,6 @@
   * in txt2tags or latex
   * with some nice plots from papers
 * gp2eps
-  * add special comment in gp (#GP2EPS for extra commandline options)
-  * make load command in gp file realized by --deps option
   * add tricktex functionality (--tex option + guess for $0) -> may no realy useful
   * more terminal (like tkiz)
   * add --multiplot option

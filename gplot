@@ -41,6 +41,7 @@
 #version 1.3.8  18.07.09 -- corrected --help text
 #version 1.3.9  22.01.10 -- clean up
 #version 1.3.10 09.10.10 -- added --[xyz]range option (thx to cahit)
+#version 1.4.0  23.12.11 -- removed --replot/--pid
 
 usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
 set=""
@@ -57,19 +58,11 @@ multi=""
 pipe="no"
 data=""
 tee=""
-show_pid="no"
-replot="no"
 md5sum="md5sum"
 
 die() {
   echo -e "$*" >&2
   exit 1
-}
-
-get_pids () {
-  local pgid
-  pgid="$(ps -p $$ -o pgid=)"
-  ps -o pid= -o pgid= -o cmd= | awk -v pgid="$pgid" '(($2==pgid)&&($3~/gnuplot/)){printf "%i ",$1}'
 }
 
 help () {
@@ -108,12 +101,9 @@ OPTIONS:
                     (useful for making plotfiles)
     --gnuplot NAME  Change the gnuplot command
                     Default: "$gnuplot"
-    --pid           Display pid of gnuplot
 -i, --pipe          Switch on reading data from STDIN by hand (useful, with --)
     --tee           like --pipe but print also data to STDOUT
-                    (ignores --print, --to, --pid)
-    --replot        make a new plot if file is changed (does not work with --pipe)
-    --filename NAME manually give filename for replot
+                    (ignores --print, --to)
 --                  All following arguments are files and plot options
                     (Ranges option will still be checked by grep, unless -r given)
                     useful for plotting multiple files (BUT quote yourself!)
@@ -236,15 +226,6 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
    --gnuplot)
      gnuplot="$2"
      shift 2;;
-   --pid)
-     show_pid="yes"
-       shift ;;
-   --replot)
-     replot="yes"
-     shift ;;
-   --filename)
-     file="$2"
-     shift 2;;
    -i | --pipe)
      pipe="yes"
      shift ;;
@@ -266,8 +247,8 @@ while [ "${1#-}" != "$1" ] && [ -n "${1#-}" ]; do
 done
 
 # if frange is not already defined check for first char, [ which implies a range
-if [ -z "$range" ] && [ "${1#'['}" != "$1" ]; then
- if [ "$plot" = "plot" ]; then
+if [[ -z $range && ${1} = "["* ]]; then
+ if [[ "$plot" = "plot" ]]; then
    #check for [??:??] or [??:??]{??:??}
    [ -n "$(echo "$1" | grep -e '^\(\[[-.eE[:digit:]]*:[-.eE[:digit:]]*\]\)\{1,2\}$')" ] || 
      die "Range ('$1') has to be in form [??:??]\<[??:??]\>"
@@ -336,14 +317,6 @@ fi
 #build shell command
 command="${set}$plot $range $gpcommand"
 
-if [ "$replot" = "yes" ]; then
-   [ -z "$file" ] && die "filename unkown for replot - use --filename"
-   [ -r $file ] || die "file '$file' not found"
-   [ "$pipe" = "yes" ] && die "replot does not work with pipe"
-   [ "$print" = "yes" ] && die "replot does not work with --print"
-   checksum="$($md5sum ${file})"
-fi
-
 #Run gnuplot if no -p given
 if [ "$tee" = "yes" ] || [ -z "$print" ]; then
   echo -e "${command}\n${data}" | $gnuplot || \
@@ -351,8 +324,6 @@ if [ "$tee" = "yes" ] || [ -z "$print" ]; then
   if [ "$tee" = "yes" ]; then
     #print and delete first line ("\n")
     echo -e "$data" | sed '1d;$d'
-  else
-    [ "$show_pid" = "yes" ] && pid=$(get_pids)
   fi
 #print
 else
@@ -362,19 +333,4 @@ else
   else
     echo -e "$command\n$data" > $to
   fi
-fi
-
-if [ "$replot" = "yes" ]; then
-  pid=$(get_pids)
-  while true; do
-    sleep 1
-    newchecksum="$($md5sum ${file})"
-    if [ "${newchecksum}" != "$checksum" ]; then
-      checksum=$newchecksum
-      kill $pid
-      echo -e "${command}" | $gnuplot || \
-        die "gnuplot finished with error !"
-      pid=$(get_pids)
-    fi 
-  done
 fi

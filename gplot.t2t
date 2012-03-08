@@ -29,11 +29,14 @@ All options are first come first evaluated. Concatenation of short options is po
 : **-3**, **--splot**
 Use splot instead of plot
 
-: **-f**, **--fct**
-Use functions instead of file, disables build-in file check
-
 : **-s**, **--set** //SET//
 Setting some gnuplot option (may multiple)
+
+: **-[xyz]range** //RA//
+Set [xyz]range, can be overwritten by **--range**
+
+: **-u**, **--unset** //SET//
+Unsetting some gnuplot option (may multiple)
 
 : **-m**, **--ymarker** //NUM//
 Plot marker line in y direction at //NUM//
@@ -70,11 +73,8 @@ Default: Nothing (whatever gnuplot is using)
 : **--tex**
 Same as **--term** "epslatex color"
 
-: **--gp2eps**
-Same as **--tex** and **-p** with automatic **-o** and **--to** filename, to be used with gp2eps
-
-: **--to** //FILE//
-Same as **--print** but to //FILE// (implies *-p*)
+: **--tex2**
+Same as **--term** "epslatex color standalone"
 
 : **-d**, **--dumb**
 Same as  **--term** "dump" (useful for console)
@@ -95,15 +95,6 @@ Display pid of gnuplot window
 
 : **-i**, **--pipe**
 Switch on reading data from //STDIN// by hand (useful with **--**)
-
-: **--tee**
-like **--pipe** but print also data to //STDOUT// (ignores **--print**, **--to**,**--pid**)
-
-: **--replot**
-make a new plot if file is changed (does not work with **--pipe**)
-
-: **--filename** //NAME//
-manually give filename for replot
 
 : **--**
 All following arguments are files and plot options,
@@ -129,8 +120,8 @@ Some useful one liners:
 - ``gplot file2.d w lines``
 - ``gplot -xx data``
 - ``gplot -o pic.eps -t "Title" file2.d w l``
-- ``gplot -fs log -xx [1:] x**2``
-- ``gplot -3fs pm3d x*y w pm3d``
+- ``gplot -s log -xx -- [1:10] x**2``
+- ``gplot -3s pm3d -- x*y w pm3d``
 - ``gplot -- '"data" u 1:2, "data" u 1:3 w l'``
 - ``gplot -c "unset key" data u 1:2``
 - ``seq 1 10 | gplot -r "[:][0:12]" --tee - 't "data"'``

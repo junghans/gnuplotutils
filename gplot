@@ -43,6 +43,7 @@
 #version 1.3.10 09.10.10 -- added --[xyz]range option (thx to cahit)
 #version 1.4.0  23.12.11 -- removed --replot/--pid
 #version 1.4.1  24.12.11 -- major clean up - removed rarely used options
+#version 1.5.0  08.03.12 -- include lev's suggestions
 
 usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
 set=""
@@ -58,6 +59,7 @@ pipe="no"
 data=""
 md5sum="md5sum"
 dregex="[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?"
+persist=""
 
 die() {
   echo -e "$*" >&2
@@ -86,7 +88,7 @@ OPTIONS:
 -o, --output FILE   Plot to file (ignores -d)
                     on term "$defaultterm"
                     change with --term
-    --term TERM     Change term to TERM (only used at given -o)
+    --term TERM     Change term to TERM
                     Default: Nothing (whatever gnuplot is using)
     --tex           Same as --term "epslatex color"
     --tex2          Same as --term "epslatex color standalone"
@@ -96,6 +98,7 @@ OPTIONS:
                     (useful for making plotfiles)
     --gnuplot NAME  Change the gnuplot command
                     Default: "$gnuplot"
+    --persist       Adds -persist to gnuplot command
 -i, --pipe          Switch on reading data from STDIN by hand (useful, with --)
     --              All following arguments are files and plot options (Mind quotes)
                     (Ranges option will still be checked, but not files)
@@ -191,6 +194,9 @@ while [[ ${1} = -?* ]]; do
    --gnuplot)
      gnuplot="$2"
      shift 2;;
+   --persist)
+     persist="yes"
+     shift;;
    -i | --pipe)
      pipe="yes"
      shift ;;
@@ -233,7 +239,8 @@ else
 fi
 
 #if term is X11, aqua or default gnuplot has to persist
-[[ $term = @(x11|wxt|aqua) || -z $term ]] && gnuplot+=" -persist"
+[[ $term = @(x11|wxt|aqua)* || -z $term || -n $persist ]] && gnuplot+=" -persist"
+echo $gnuplot xxx $term
 [[ $print = yes ]] && gnuplot="cat"
 {
   [[ -n $term ]] && echo -e "set terminal $term"

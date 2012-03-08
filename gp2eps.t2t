@@ -53,13 +53,6 @@ It should be the same as using in main tex file ``\includegraphics[width=X.X\tex
 
 default: 0.5
 
-: **-f**, **--fontscale** //X.X//
-scale for the fonts (to pointsize)
-
-1.0=normal 0.8=footnote
-
-default: 0.8
-
 : **-p**, **--pointsize** //X.X//
 pointsize of the fonts
 
@@ -70,22 +63,47 @@ change the ratio between size of labels (\gplabel) and numbers (\gpnumber)
 
 default: 0.8
 
+: **-t**, **--textwidth** //X.X//
+textwidth (in cm) of tex docment (use --widthfile if unknown)
+
+default: 12.7 cm
+
+: **-r**, **--ratio** //X.X//
+ratio of the image (width/heigth)
+
+default: 1.42857143
+
+: **--margin** //XXX//
+margin of the images of the image (comma separeted numbers l,r,t,b - empty = auto)
+
+default: auto
+
+: **--multi** //XXX//
+This is a multiplot (comma separated number x,y)
+
+default: 1,1         
+
+: **--widthfile** //FILE//
+Get textwidth from this latex file
+
 : **-o** //FILE//
 give the output filename, else it is grep from the gp-file or tex-file that is used
 
 : **--gpown** //X.X//
 give size of additional label (\gpown)
 
-default: 10
+mefault: 10
 
-: **--gv**
-start gv at the end
+: **--termopts** //OPTS//
+extra options to be given to 'set terminal epslatex standalone'
 
-: **--nobbfix**
-will not fix eps bounding box to a tight box
+default: color
 
-: **--bbrescale**
-used for correct fontsize after bounding box fix, do //NOT// use this yourself
+: **--view** //VIEWER//
+start //VIEWER// at the end
+
+: **--deps**
+show makefile rule for the eps file (implies **--quiet**)
 
 : **--gnuplot** //NAME//
 change the gnuplot command to run
@@ -109,9 +127,6 @@ Stuff to scale somehow else can be marked with \gpown (use **--gpown**).
 A simple, but nice example plot file would like this:
 
 ```
-set terminal epslatex
-set output "tmp.tex"
-
 set title '$\rho$'
 set xlabel "$x_i$ [nm]"
 set ylabel "$\\theta$ [deg]"
@@ -121,7 +136,6 @@ plot cos(x) w l
 
 Save it as file.gp and run ``gp2eps file.gp``
 
-Notice that the output file in ``set output`` is used as an intermediate file. So be careful with the name, because it will overwrite existing files.
 Also mind the double backslash, when using double quotes. It works like in shell, in double quotes backslash sequences are interpreted.
 Sometimes this is useful, for ``\n`` or so.
 
@@ -155,15 +169,12 @@ Right size very much depends on what do you want to do and what you think is nic
 The tricky things starts when you want to do half size (one column out of two) plots with the correct fontsize.
 There essential two ways of doing that the ``set size`` way (see above) or the use of the -s option.
 To make it as easy for the user as possible, you can forget about ``set size`` and just use -s and
-just remember to put the right scale in your latex file with something like
-``` \includegraphics[width=0.3\textwidth]{YYY.eps}
-e.g. when s was 0.3.
-This allows you use the //same// plot file for a half size, one third or ever one quater size plot.
+include it without any  scale in your latex file with something like
+``` \includegraphics{YYY.eps}
 
-In other word instead of make the plot smaller gp2eps just make the fonts bigger. And here comes another feature into play connected to
-rescaling. When the bounding box is made tight, especial for pm3d plot, the fonts essential become bigger and gp2eps take care of the that
-and corrects the fontsize again according to that change.
-
+Internally it uses the size option of the terminal command. It also removed the pdf mark from the target file and adds the psfrag package to the header of the tex file.
+Additionally it can generate dependencies for makefiles.
+``` gp2eps --deps file.gp >> Makefile.incl
 
 = TRICKS =
 
@@ -187,6 +198,8 @@ But when I went to [Mainz www.mpip-mainz.mpg.de] in 2007, it was completely rewr
 
 In 2009 I first published it outside my groups on googlecode under GPLv2.
 
+In 2011 I rewrote gp2eps to use the size option of the terminal.
+
 = AUTHOR =
 
 Written and maintained by Christoph Junghans <junghans@mpip-mainz.mpg.de>
@@ -197,7 +210,7 @@ as a text file, then converted to this format by [txt2tags http://txt2tags.sourc
 
 = COPYRIGHT =
 
-Copyright (C) 2005 - 2009 Christoph Junghans
+Copyright (C) 2005 - 2012 Christoph Junghans
 
 This is free software; see the source for copying conditions. There is
 NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR

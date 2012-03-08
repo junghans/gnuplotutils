@@ -161,8 +161,7 @@ Makes a eps file out of a gnuplot script
 -q, --quiet           Do not show messages
                       except errors
 -s, --scale X.X       scale of the image to text (also see --textwidth)
-		      (should be the same as using in main tex file
-                      \\includegraphics[width=X.X\\textwidth]{YYY.eps}, when s=X.X )
+		      (include in the tex file with \\includegraphics{YYY.eps})
                       0.5=halfsides 1.0=normal
                       default: $scale
 -p, --pointsize X.X   pointsize of the fonts

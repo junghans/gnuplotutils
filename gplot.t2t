@@ -88,6 +88,9 @@ Print command instead of running gnuplot (useful for making plotfiles)
 : **--gnuplot** //NAME//
 Change the gnuplot command
 
+: **--persist**
+Adds -persist to gnuplot command
+
 Default: "gnuplot"
 
 : **--pid**

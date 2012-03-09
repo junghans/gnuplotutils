@@ -239,7 +239,7 @@ else
 fi
 
 #if term is X11, aqua or default gnuplot has to persist
-[[ $term = @(x11|wxt|aqua)* || -z $term || -n $persist ]] && gnuplot+=" -persist"
+[[ $term = @(x11|wxt|aqua)?( *) || -z $term || -n $persist ]] && gnuplot+=" -persist"
 [[ $print = yes ]] && gnuplot="cat"
 {
   [[ -n $term ]] && echo -e "set terminal $term"

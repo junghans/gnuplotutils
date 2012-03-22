@@ -401,6 +401,7 @@ while (<FILE>) {
   if (/^#GP2EPS/) {
     my @opts=split(/\s/,$_);
     shift(@opts);
+    print "Inside plotfile options: @opts\n" unless $quiet;
     parse_opts(@opts);
   }
 }

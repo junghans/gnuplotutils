@@ -55,7 +55,8 @@
 #version 2.0.3,  24.05.11 -- added --multi and also XXX% in --textwidth
 #version 2.1.0,  27.05.11 -- removed --fontscale, too confusing
 #version 2.1.1,  18.11.11 -- added support for load in --deps
-#version 2.1.2,  18.11.11 -- allow additonal options in plotfile (#GP2EPS)
+#version 2.1.2,  22.03.12 -- allow additonal options in plotfile (#GP2EPS)
+#version 2.1.2,  10.04.12 -- fixed dvips bug, which lead to eps upside-down
 
 use strict;
 
@@ -449,6 +450,8 @@ print CONFFILE '\usepackage{psfrag}'."\n";
 print CONFFILE '\newcommand{\gplabel}{}'."\n";
 print CONFFILE '\newcommand{\gpnumber}{}'."\n";
 print CONFFILE '\newcommand{\gpown}{}'."\n";
+#http://www.cs.toronto.edu/~dross/latex/
+print CONFFILE '\special{! TeXDict begin /landplus90{true}store end }'."\n";
 close(CONFFILE);
 
 open (EPSFILE, "$tmpfile-inc.eps") or die "Error at opening '$tmpfile-inc.eps'\n"; 

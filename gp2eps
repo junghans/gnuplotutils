@@ -57,6 +57,7 @@
 #version 2.1.1,  18.11.11 -- added support for load in --deps
 #version 2.1.2,  22.03.12 -- allow additonal options in plotfile (#GP2EPS)
 #version 2.1.2,  10.04.12 -- fixed dvips bug, which lead to eps upside-down
+#version 2.2.0,  11.04.12 -- removed --scale option as --multi has replaced it
 
 use strict;
 
@@ -68,11 +69,10 @@ my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
 #Defaults
 my $quiet=undef;
 my $outname=undef;
-my $scale=0.5;
 my $ratioscale=1.0;
 my $pointsize=10;
 my $gpown=10;
-my $term="set terminal epslatex standalone";
+my $term="set terminal epslatex standalone clip";
 my $termopts="color";
 my @margins;
 my @multi=(1,1);
@@ -80,11 +80,10 @@ my $debug=undef;
 my $force=undef;
 my $gnuplot="gnuplot";
 
-my $bbrescale=undef;
 my $viewer=undef;
 my $showdeps=undef;
 my $widthfile=undef;
-my $textwidth=12.7;
+my $width=6.1;
 my $ratio=1.42857143;
 
 my $tmpfile="gp2eps_tmp";
@@ -103,7 +102,7 @@ sub run_latex($;$) {
   unlink("$trunc.log");
 }
 
-sub get_textwidth($) {
+sub get_width($) {
   unlink("$tmpfile.tex") if $force;
   die "$tmpfile.tex is already and would be overwritten add --force if you are sue that you want that.\n" 
     if ( -r "$tmpfile.tex");
@@ -121,7 +120,7 @@ sub get_textwidth($) {
   close(HEADERFILE);
   print TEXFILE '\usepackage{layouts}'."\n";
   print TEXFILE '\begin{document}'."\n";
-  print TEXFILE '\printinunitsof{cm}\prntlen{\textwidth}'."\n";
+  print TEXFILE '\printinunitsof{cm}\prntlen{\columnwidth}'."\n";
   print TEXFILE '\end{document}'."\n";
   close(TEXFILE);
   run_latex("$tmpfile.tex",$path);
@@ -133,7 +132,7 @@ sub get_textwidth($) {
     last if defined($tl);
   }
   close(DVIFILE);
-  die "Could not grep textwidth from $tmpfile.dvi \n" unless defined($tl);
+  die "Could not grep width from $tmpfile.dvi \n" unless defined($tl);
   unlink("$tmpfile.dvi");
   return $tl;
 }
@@ -161,24 +160,20 @@ Makes a eps file out of a gnuplot script
 -h, --help            Show this help message
 -q, --quiet           Do not show messages
                       except errors
--s, --scale X.X       scale of the image to text (also see --textwidth)
-		      (include in the tex file with \\includegraphics{YYY.eps})
-                      0.5=halfsides 1.0=normal
-                      default: $scale
 -p, --pointsize X.X   pointsize of the fonts
                       default: $pointsize
     --ratioscale X.X  change the ratio between size of labels
                       (\\gplabel) and numbers (\\gpnumber)
                       default: $ratioscale
--t, --textwidth X.X   textwidth (in cm) of tex docment (use --widthfile if unknown)
-                      default: $textwidth cm
+-w, --width     X.X   width (in cm) of tex docment (use --widthfile if unknown)
+                      default: $width cm (usually columnwidth, for 1 column = textwidth)
 -r, --ratio     X.X   ratio of the image (width/heigth)
                       default: $ratio	   
     --margin XXX      margin of the images of the image (comma separeted numbers l,r,t,b - empty = auto)
                       default: auto
-    --multi XXX       This is a multiplot (comma separated number x,y)
+    --multi XXX       This is a multiplot (comma separated number x,y), scales width and heigth
 		      default: $multi[0],$multi[1]	   
-    --widthfile FILE  Get textwidth from this latex file
+    --widthfile FILE  Get columnwidth from this latex file
 -o, --output FILE     give the output filename
                       default: trunc of 1st gnuplot script
     --gpown  X.X      give size of additional label '\\gpown'
@@ -224,11 +219,6 @@ END
   		$quiet='yes';
   		shift(@_);
   	}
-  	elsif (($_[0] eq "-s") or ($_[0] eq "--scale"))
-  	{
-  		shift(@_);
-  		$scale=shift(@_);
-  	}
   	elsif (($_[0] eq "-p") or ($_[0] eq "--pointsize"))
   	{
   		shift(@_);
@@ -244,10 +234,10 @@ END
   		shift(@_);
   		$ratio=shift(@_);
   	}
-  	elsif (($_[0] eq "-t") or ($_[0] eq "--textwidth"))
+  	elsif (($_[0] eq "-w") or ($_[0] eq "--width"))
   	{
   	  shift(@_);
-  	  $textwidth=shift(@_);
+  	  $width=shift(@_);
   	}
   	elsif ($_[0] eq "--widthfile")
   	{
@@ -327,7 +317,7 @@ while ($s-- > 0) {shift(@ARGV)};
 die "No file given\n$usage\n" unless $#ARGV > -1;
 die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
-print "Using scale=$scale pointsize=$pointsize and gpown=$gpown\n" unless $quiet;
+print "Using pointsize=$pointsize and gpown=$gpown\n" unless $quiet;
 print "Using gnuplot: $gnuplot\n" unless $quiet;
 my $size=$pointsize;
 my $sizestart='{\fontsize{'.$size.'}{'.$size.'}\selectfont';
@@ -390,10 +380,10 @@ if ($showdeps)
 }
 
 if ($widthfile) {
-  $textwidth=get_textwidth($widthfile);
-  print "Textwidth determined from $widthfile is $textwidth cm\n" unless $quiet;
+  $width=get_width($widthfile);
+  print "Columnwidth determined from $widthfile is $width cm\n" unless $quiet
 }else{
-  print "Textwidth is $textwidth cm\n" unless $quiet;
+  print "Columnwidth is $width cm\n" unless $quiet;
 }
 
 #look for additional opts in plot file
@@ -413,8 +403,8 @@ open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
 unlink("$tmpfile.gp") if $force;
 die "$tmpfile.gp is already and would be overwritten add --force if you are sue that you want that.\n" if ( -r "$tmpfile.gp");
 open(NEWFILE,"> $tmpfile.gp") or die "Error at opening gp new file '$tmpfile.gp'\n";
-my $w=$multi[0]*$scale*$textwidth."cm";
-my $h=$multi[1]*$scale*$textwidth/$ratio."cm";
+my $w=$multi[0]*$width."cm";
+my $h=$multi[1]*$width/$ratio."cm";
 print "Image will have the size $w x $h\n" unless $quiet;
 print NEWFILE "$term size $w,$h $size $termopts\n";
 print "Terminal line is: $term size $w,$h $size $termopts\n";
@@ -450,8 +440,10 @@ print CONFFILE '\usepackage{psfrag}'."\n";
 print CONFFILE '\newcommand{\gplabel}{}'."\n";
 print CONFFILE '\newcommand{\gpnumber}{}'."\n";
 print CONFFILE '\newcommand{\gpown}{}'."\n";
+
+#Disable as it has other side effects
 #http://www.cs.toronto.edu/~dross/latex/
-print CONFFILE '\special{! TeXDict begin /landplus90{true}store end }'."\n";
+#print CONFFILE '\special{! TeXDict begin /landplus90{true}store end }'."\n";
 close(CONFFILE);
 
 open (EPSFILE, "$tmpfile-inc.eps") or die "Error at opening '$tmpfile-inc.eps'\n"; 
@@ -473,7 +465,8 @@ my $put=undef;
 while (<OLDTEXFILE>)
 {
 	s/gnuplot\.cfg/$tmpfile\.cfg/;
-	s/\\usepackage\[(.*)\]{geometry}/\\usepackage[dvips,$1]{geometry}/;
+	#Has strange side effects
+	#s/\\usepackage\[(.*)\]{geometry}/\\usepackage[dvips,$1]{geometry}/;
 	s/$tmpfile-inc/$&2/;
 	# in the put block of the tex file
 	if ( $_ =~ /\\put/ )
@@ -544,7 +537,9 @@ run_latex("$outname.tex");
 unlink("$tmpfile.cfg") unless $debug;
 unlink("$outname.tex") unless $debug;
 
-die "Error at runing 'dvips $outname.dvi -T $w,$h -o $outname.eps'\n" if system("dvips -T $w,$h -o $outname.eps $outname.dvi > /dev/null 2> /dev/null");
+my $dvips="dvips -T $w,$h -o $outname.eps $outname.dvi";
+print "Runing: '$dvips'\n" unless $quiet;
+die "Error at runing dvips \n" if system("$dvips > /dev/null 2> /dev/null");
 unlink("$outname.dvi") unless $debug;
 unlink("$tmpfile-inc2.eps") unless $debug;
 

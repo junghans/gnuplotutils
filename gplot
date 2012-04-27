@@ -44,6 +44,7 @@
 #version 1.4.0  23.12.11 -- removed --replot/--pid
 #version 1.4.1  24.12.11 -- major clean up - removed rarely used options
 #version 1.5.0  08.03.12 -- include lev's suggestions
+#version 1.6.0  26.04.12 -- added --for option
 
 usage="Usage: ${0##*/} OPTIONS <[?:?]> filename <gpoptions>"
 set=""
@@ -73,6 +74,7 @@ $usage
 
 OPTIONS:
 -3, --splot         Use splot instead of plot
+    --for XXX       Add for loop before first file (needs gnuplot 4.4)
 -s, --set 'SET'     Setting some gnuplot option (may multiple)
     --[xyz]range RA Set [xyz]range, can be overwritten by --range
 -u, --unset 'SET'   Unsetting some gnuplot option (may multiple)
@@ -116,8 +118,10 @@ Examples: ${0##*/} [1:2][2:3] file.d u 1:2
           ${0##*/} -c "unset key" data u 1:2
           seq 1 10 | ${0##*/} -r "[:][0:12]" - 't "data"'
           seq 1 2 | ${0##*/}
+	  ${0##*/} --for [i=1:3] data u 0:'(column(i))' w l
 
-Send comments and bugs to: junghans@mpip-mainz.mpg.de
+Report bugs and comments at https://code.google.com/p/gnuplotutils/issues/list
+                         or junghans@votca.org
 eof
 }
 
@@ -188,6 +192,9 @@ while [[ ${1} = -?* ]]; do
    -3 | --splot)
      plot="splot"
      shift ;;
+   --for )
+     for="$2"
+     shift 2;;
    -p | --print)
      print="yes"
      shift ;;
@@ -245,7 +252,7 @@ fi
   [[ -n $term ]] && echo -e "set terminal $term"
   [[ -n $out ]] && echo -e "set output '$out'"
   echo -e "${set}"
-  echo -e "$plot $range $gpcommand"
+  echo -e "$plot $range ${for:+for} ${for} $gpcommand"
   [[ $pipe = yes ]] && cat
 } | $gnuplot || \
   die "$gnuplot finished with error !"

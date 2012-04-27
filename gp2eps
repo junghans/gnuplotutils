@@ -191,7 +191,8 @@ Axis numbers are always scaled with 0.8 (change with -r option). Additional stuf
 like the graph numbers can be marked with \\gpnumber.  Stuff to scale like labels can be
 marked with \\gplabel. Stuff to scale somehow else can be marked with \\gpown (use --gpown).
 
-Send comments and bugs to: junghans\@votca.org
+Report bugs and comments at https://code.google.com/p/gnuplotutils/issues/list
+                         or junghans\@votca.org
 END
   		exit;
   	}

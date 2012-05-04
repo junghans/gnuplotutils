@@ -58,6 +58,7 @@
 #version 2.1.2,  22.03.12 -- allow additonal options in plotfile (#GP2EPS)
 #version 2.1.2,  10.04.12 -- fixed dvips bug, which lead to eps upside-down
 #version 2.2.0,  11.04.12 -- removed --scale option as --multi has replaced it
+#version 2.2.1,  04.05.12 -- only allow one option per #GP2EPS line
 
 use strict;
 
@@ -390,9 +391,11 @@ if ($widthfile) {
 #look for additional opts in plot file
 open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
 while (<FILE>) {
-  if (/^#GP2EPS/) {
-    my @opts=split(/\s/,$_);
-    shift(@opts);
+  if (s/^#GP2EPS\s+(-\S+)//) {
+    my @opts;
+    chomp($_);
+    #treat the rest of the line as argument of the option
+    push(@opts,$1,$_);
     print "Inside plotfile options: @opts\n" unless $quiet;
     parse_opts(@opts);
   }

@@ -454,8 +454,8 @@ open (EPSFILE, "$tmpfile-inc.eps") or die "Error at opening '$tmpfile-inc.eps'\n
 open (NEWEPSFILE, "> $tmpfile-inc2.eps") or die "Error at opening '$tmpfile-inc.eps'\n"; 
 while (<EPSFILE>) {
   #remove gnuplot nasty pdfmarks
-  s/\s*\/(Subject|Creator|Author|CreationDate)\s+\(.*\)/% $&/;
-  s/\s*\/DOCINFO\s+pdfmark/% $&/;
+  s/\s*\/(Subject|Creator|Author|CreationDate)\s+\(.*\)/% $& #disabled by GP2EPS/;
+  s/\s*\/DOCINFO\s+pdfmark/% $& #disabled by GP2EPS/;
   print NEWEPSFILE $_;
 }
 close(EPSFILE);

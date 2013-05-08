@@ -30,7 +30,8 @@
 #version 0.53, 18.04.08 -- added --tight and change default behavious
 #version 0.54, 25.04.08 -- better version
 #version 0.55, 13.10.08 -- added GPL header
-#version 0.5.6,  19.05.11 -- removed --pdf option
+#version 0.5.6, 19.05.11 -- removed --pdf option
+#version 0.5.7, 08.05.13 -- fixed a bug in -o extension detection
 
 use strict;
 
@@ -166,7 +167,7 @@ die "${usage}Error: no tex code given\n" unless $#ARGV>-1;
 die "What do you want equ or pic mode?\nCheat the text mode with \$something\$ !\n" if ($pic and $equ);
 
 my $ending;
-if ( $output =~ /\.(.*?)$/){
+if ( $output =~ /^.*\.(.*?)$/){
   $ending=$1;
   die "Can not handle this ending ($ending)!\n" unless (($ending eq "eps")or($ending eq "ps")or($ending eq "pdf"));
 }else{

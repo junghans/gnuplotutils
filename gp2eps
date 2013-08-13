@@ -59,6 +59,7 @@
 #version 2.1.2,  10.04.12 -- fixed dvips bug, which lead to eps upside-down
 #version 2.2.0,  11.04.12 -- removed --scale option as --multi has replaced it
 #version 2.2.1,  04.05.12 -- only allow one option per #GP2EPS line
+#version 2.2.2,  13.08.13 -- added deps= to deps
 
 use strict;
 
@@ -374,6 +375,10 @@ if ($showdeps)
 	die "Cirular deps (multiple times $1)\n" if ($deps =~ / ($2) /);
       	$deps.=" $2";
 	push(@files,$2);
+      }
+      #deps="file" is a simple way to add deps inside a gp file
+      if (/deps\s*=\s*\s*(['"])([^\1]*?)(\1)/) {
+	$deps.=" $2";
       }
     }
   }

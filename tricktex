@@ -32,6 +32,7 @@
 #version 0.55, 13.10.08 -- added GPL header
 #version 0.5.6, 19.05.11 -- removed --pdf option
 #version 0.5.7, 08.05.13 -- fixed a bug in -o extension detection
+#version 0.5.8, 19.08.13 -- added --output(=-o), fail if output is in pics
 
 use strict;
 
@@ -72,7 +73,7 @@ Options:
 -v, --version         Prints version
 -h, --help            Show this help message
 -p NAME               Add package
--o FILE               Give the output filename
+-o, --output FILE     Give the output filename
                       default: $output
 --equ                 Run in equation mode
 --keep                Do not delete the tex file
@@ -95,7 +96,7 @@ Send comments and bugs to: junghans[at]mpip-mainz.mpg.de
 END
 		exit;
 	}
-	elsif ($ARGV[0] eq "-o"){
+	elsif (($ARGV[0] eq "-o") or ($ARGV[0] eq "--width")){
 		shift(@ARGV);
 		$output=shift(@ARGV);
 	}
@@ -200,20 +201,20 @@ print FILE '\noindent'."\n";
 print FILE '\['."\n" if($equ);
 if ($pic){
   foreach (@ARGV){
-    if ($_ ne "$output" ){
-      if ( $_ =~ /\.(eps|ps)$/ ){
-	if ( -r $_ ){
-	  print FILE '\includegraphics[angle='.$angle.',width='.$textwidth.'\textwidth]{'.$_."}\n";
-	  $nrpic++;
-	}else{ 
-	  print "Given picture is not readable -> ignored!\n";
-	}
-      }else{
-	print "Given picture ($_) should end with eps or ps -> ignored !\n";
-      }
-    }else{
-      print "Given picture ($_) is equal to output file -> ignored!\n";
+    if ( $_ !~ /\.(eps|ps)$/ ){
+      print "Given picture ($_) should end with eps or ps -> ignored !\n";
+      next;
     }
+    if ( ! -r $_ ){
+      print "Given picture is not readable -> ignored!\n";
+      next;
+    }
+    if ( $_ =~ /(\.\/)?$trunc\.$ending2$/) {
+      print "Given picture ($_) is equal to output file or one of his itermediates -> ignored!\n";
+      next;
+    }
+    print FILE '\includegraphics[angle='.$angle.',width='.$textwidth.'\textwidth]{'.$_."}\n";
+    $nrpic++;
   }
 }else{
   foreach (@ARGV){

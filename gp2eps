@@ -60,6 +60,7 @@
 #version 2.2.0,  11.04.12 -- removed --scale option as --multi has replaced it
 #version 2.2.1,  04.05.12 -- only allow one option per #GP2EPS line
 #version 2.2.2,  13.08.13 -- added deps= to deps
+#version 2.2.3,  21.08.13 -- added --adddep
 
 use strict;
 
@@ -74,7 +75,7 @@ my $outname=undef;
 my $ratioscale=1.0;
 my $pointsize=10;
 my $gpown=10;
-my $term="set terminal epslatex standalone clip";
+my $term="set terminal epslatex standalone";
 my $termopts="color";
 my @margins;
 my @multi=(1,1);
@@ -84,6 +85,7 @@ my $gnuplot="gnuplot";
 
 my $viewer=undef;
 my $showdeps=undef;
+my $deps="";
 my $widthfile=undef;
 my $width=6.1;
 my $ratio=1.42857143;
@@ -184,6 +186,7 @@ Makes a eps file out of a gnuplot script
                       default: $termopts
     --view VIEWER     view output with VIEWER at the end
     --deps            show makefile rule for the eps file (implies --quiet)
+    --adddep FILE     add FILE to dependency rule in --deps
     --gnuplot CMD     change the gnuplot command
                       default: "$gnuplot"
     --force           force overwritting of all intermediate files
@@ -281,6 +284,11 @@ END
   		$showdeps='yes';
   		$quiet="yes";
   	}
+  	elsif ($_[0] eq "--adddep")
+  	{
+  		shift(@_);
+		$deps.=" ".shift(@_);
+  	}
   	elsif ($_[0] eq "--gnuplot")
   	{
   		shift(@_);
@@ -336,10 +344,24 @@ print "Using gnuplot script: '$ARGV[0]'\n" unless $quiet;
 $ARGV[0] =~ /^(.*)\.[^.]*?/ or die "File '$ARGV[0]' has no extension\n";
 $outname="$1" unless $outname;
 
+#look for additional opts in plot file
+open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
+while (<FILE>) {
+  if (s/^#GP2EPS\s+(-\S+)//) {
+    my @opts;
+    chomp($_);
+    #treat the rest of the line as argument of the option
+    push(@opts,$1,$_);
+    print "Inside plotfile options: @opts\n" unless $quiet;
+    parse_opts(@opts);
+  }
+}
+close(FILE);
+
 #show deps for makefiles, we need $output name
 if ($showdeps)
 {
-  my $deps="$outname.eps: $ARGV[0]";
+  $deps="$outname.eps: $ARGV[0] $deps";
   my @files;
   push(@files,$ARGV[0]);
   while (defined(my $file=pop(@files))) {
@@ -376,10 +398,6 @@ if ($showdeps)
       	$deps.=" $2";
 	push(@files,$2);
       }
-      #deps="file" is a simple way to add deps inside a gp file
-      if (/deps\s*=\s*\s*(['"])([^\1]*?)(\1)/) {
-	$deps.=" $2";
-      }
     }
   }
   print "$deps\n";
@@ -392,20 +410,6 @@ if ($widthfile) {
 }else{
   print "Columnwidth is $width cm\n" unless $quiet;
 }
-
-#look for additional opts in plot file
-open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";
-while (<FILE>) {
-  if (s/^#GP2EPS\s+(-\S+)//) {
-    my @opts;
-    chomp($_);
-    #treat the rest of the line as argument of the option
-    push(@opts,$1,$_);
-    print "Inside plotfile options: @opts\n" unless $quiet;
-    parse_opts(@opts);
-  }
-}
-close(FILE);
 
 #build tex file from gnuplot
 open(FILE,$ARGV[0]) or die "Error at opening gp file '$ARGV[0]'\n";

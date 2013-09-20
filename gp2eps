@@ -61,6 +61,7 @@
 #version 2.2.1,  04.05.12 -- only allow one option per #GP2EPS line
 #version 2.2.2,  13.08.13 -- added deps= to deps
 #version 2.2.3,  21.08.13 -- added --adddep
+#version 2.2.4,  20.09.13 -- tmpfile contain $$ to allow parallel build in make
 
 use strict;
 
@@ -89,8 +90,7 @@ my $deps="";
 my $widthfile=undef;
 my $width=6.1;
 my $ratio=1.42857143;
-
-my $tmpfile="gp2eps_tmp";
+my $tmpfile="gp2eps_tmp-$$";
 
 sub run_latex($;$) {
   die "Could not find tex file '$_[0]'\n" unless( -f "$_[0]" );
@@ -276,7 +276,7 @@ END
   	{
   		shift(@_);
                   @multi=split(/,/,shift(@_).",1");
-  		die "Not enough values after --multi, I got $#multi, but need 4\n" if $#multi < 2;
+  		die "Not enough values after --multi, I got $#multi, but need 2\n" if $#multi < 2;
   	}
   	elsif ($_[0] eq "--deps")
   	{

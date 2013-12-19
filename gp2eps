@@ -62,6 +62,7 @@
 #version 2.2.2,  13.08.13 -- added deps= to deps
 #version 2.2.3,  21.08.13 -- added --adddep
 #version 2.2.4,  20.09.13 -- tmpfile contain $$ to allow parallel build in make
+#version 2.2.5,  19.12.13 -- fixed default width
 
 use strict;
 
@@ -88,7 +89,7 @@ my $viewer=undef;
 my $showdeps=undef;
 my $deps="";
 my $widthfile=undef;
-my $width=6.1;
+my $width=8.3;
 my $ratio=1.42857143;
 my $tmpfile="gp2eps_tmp-$$";
 

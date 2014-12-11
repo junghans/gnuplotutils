@@ -63,6 +63,7 @@
 #version 2.2.3,  21.08.13 -- added --adddep
 #version 2.2.4,  20.09.13 -- tmpfile contain $$ to allow parallel build in make
 #version 2.2.5,  19.12.13 -- fixed default width
+#version 2.3.0,  11.12.14 -- added pdf output format using gc
 
 use strict;
 
@@ -74,6 +75,7 @@ my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
 #Defaults
 my $quiet=undef;
 my $outname=undef;
+my $outext="eps";
 my $ratioscale=1.0;
 my $pointsize=10;
 my $gpown=10;
@@ -102,7 +104,7 @@ sub run_latex($;$) {
     die "Could not find dir '$_[1]'\n" unless ( -d "$_[1]" );
     $path.=$_[1];
   }
-  die "Error at runing 'latex $_[0]' see $trunc.log for error\n" if system("export TEXINPUTS='$path'; echo | latex -halt-on-error $_[0] > /dev/null 2> /dev/null");
+  die "Error at running 'latex $_[0]' see $trunc.log for error\n" if system("export TEXINPUTS='$path'; echo | latex -halt-on-error $_[0] > /dev/null 2> /dev/null");
   unlink("$trunc.aux");
   unlink("$trunc.log");
 }
@@ -206,6 +208,10 @@ END
   	{
   		shift(@_);
   		$outname=shift(@_);
+		$outname =~ /^(.*)\.([^.]*)?/ or die "File '$outname' has no extension\n";
+		$outname = "$1";
+		$outext = "$2";
+		die "Only extensions eps and pdf are implemented yet (found $outext)\n" unless ($outext =~ /(eps|pdf)/);
   	}
   	elsif (($_[0] eq "-v") or ($_[0] eq "--version"))
   	{
@@ -362,7 +368,7 @@ close(FILE);
 #show deps for makefiles, we need $output name
 if ($showdeps)
 {
-  $deps="$outname.eps: $ARGV[0] $deps";
+  $deps="$outname.$outext: $ARGV[0] $deps";
   my @files;
   push(@files,$ARGV[0]);
   while (defined(my $file=pop(@files))) {
@@ -439,10 +445,10 @@ while (<FILE>)
 close(FILE);
 close(NEWFILE);
 
-die "Error at runing 'gnuplot $tmpfile.gp'\n" if system ("$gnuplot $tmpfile.gp");
+die "Error at running 'gnuplot $tmpfile.gp'\n" if system ("$gnuplot $tmpfile.gp");
 unlink("$tmpfile.gp") unless $debug;
 
-print "Output file : '$outname.eps'\n" unless $quiet;
+print "Output file : '$outname.$outext'\n" unless $quiet;
 
 open (NEWTEXFILE,"> $outname.tex") or die "Error at opening new tex file\n";
 open(OLDTEXFILE,"$tmpfile.tex")	or die "Error at opening old tex file\n";
@@ -552,10 +558,17 @@ unlink("$tmpfile.cfg") unless $debug;
 unlink("$outname.tex") unless $debug;
 
 my $dvips="dvips -T $w,$h -o $outname.eps $outname.dvi";
-print "Runing: '$dvips'\n" unless $quiet;
-die "Error at runing dvips \n" if system("$dvips > /dev/null 2> /dev/null");
+print "Running: '$dvips'\n" unless $quiet;
+die "Error at running dvips \n" if system("$dvips > /dev/null 2> /dev/null");
 unlink("$outname.dvi") unless $debug;
 unlink("$tmpfile-inc2.eps") unless $debug;
+
+if ($outext eq "pdf"){
+  my $gscmd="gs -sDEVICE=pdfwrite -o $outname.pdf $outname.eps";
+  print "Running: '$gscmd'\n" unless $quiet;
+  die "Error at running gs \n" if system("$gscmd > /dev/null 2> /dev/null");
+  unlink("$outname.eps") unless $debug;
+}
 
 if ($viewer)
 {

@@ -34,6 +34,7 @@
 #version 0.5.7, 08.05.13 -- fixed a bug in -o extension detection
 #version 0.5.8, 19.08.13 -- added --output(=-o), fail if output is in pics
 #version 0.5.9, 20.09.13 -- make -t, --view work again
+#version 0.6.0, 13.03.15 -- moved issue tracker to github
 
 use strict;
 
@@ -93,7 +94,7 @@ Examples: $progname --equ -o test.eps \'\\omega\'
           $progname hallo
           $progname --pic *.eps
 
-Report bugs and comments at https://code.google.com/p/gnuplotutils/issues/list
+Report bugs and comments at https://github.com/junghans/gnuplotutils/issues
                          or junghans\@votca.org
 END
 		exit;

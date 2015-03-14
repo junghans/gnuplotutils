@@ -64,6 +64,7 @@
 #version 2.2.4,  20.09.13 -- tmpfile contain $$ to allow parallel build in make
 #version 2.2.5,  19.12.13 -- fixed default width
 #version 2.3.0,  11.12.14 -- added pdf output format using gc
+#version 2.3.1,  13.03.15 -- moved issue tracker to github
 
 use strict;
 
@@ -199,7 +200,7 @@ Axis numbers are always scaled with 0.8 (change with -r option). Additional stuf
 like the graph numbers can be marked with \\gpnumber.  Stuff to scale like labels can be
 marked with \\gplabel. Stuff to scale somehow else can be marked with \\gpown (use --gpown).
 
-Report bugs and comments at https://code.google.com/p/gnuplotutils/issues/list
+Report bugs and comments at https://github.com/junghans/gnuplotutils/issues
                          or junghans\@votca.org
 END
   		exit;

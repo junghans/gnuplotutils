@@ -106,4 +106,4 @@ echo "with -s 0.33 include with \includegraphics[width=0.33\textwidth]{} (3 colu
 echo
 echo "For more tricks see the manpage of gp2eps"
 echo
-echo "Have fun - feel free to add comments on gnuplotutils.googlecode.com"
+echo "Have fun - feel free to add comments on https://github.com/junghans/gnuplotutils/wiki"

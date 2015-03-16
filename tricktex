@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# C. Junghans
+# Copyright (C) 2007-2015 Christoph Junghans
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,7 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
+#
+#
 #version 0.42 added --keep option
 #version 0.43 added --pic option
 #version 0.44 added --pdf option
@@ -41,7 +42,7 @@ use strict;
 $_=$0;
 s#^.*/##;
 my $progname=$_;
-my $usage="Usage: $progname [OPTIONS] tex code\nHelp with --help\n";
+my $usage="Usage: $progname [OPTIONS] tex code";
 my $output="myfile";
 my $ending="eps";
 my @packages;
@@ -73,29 +74,27 @@ $usage
 Make a eps or ps file out of a tex code
 
 Options:
--v, --version         Prints version
--h, --help            Show this help message
--p NAME               Add package
--o, --output FILE     Give the output filename
-                      default: $output.$ending
---equ                 Run in equation mode
---keep                Do not delete the tex file
---pic                 Run in Picture mode
--t, --tight           tight bounding (uses bbbox_add.pl)
--w, --width NUMBER    Change textwidth of the pictures
-                      (implies --pic)
-                      default: $textwidth (*\\textwidth)
--r, --rotate          rotate pics by 90 degree
---view VIEWER         Run VIEWER at the end
+ -v, --version         Prints version
+ -h, --help            Show this help message
+ -p NAME               Add package
+ -o, --output FILE     Give the output filename. The default is '$output.$ending'
+ --equ                 Run in equation mode
+ --keep                Do not delete the tex file
+ --pic                 Run in Picture mode
+ -t, --tight           tight bounding (uses bbbox_add.pl)
+ -w, --width NUMBER    Change textwidth of the pictures (implies --pic)
+                       The default is $textwidth (*\\textwidth)
+ -r, --rotate          rotate pics by 90 degree
+ --view VIEWER         Run VIEWER at the end
 
-Examples: $progname --equ -o test.eps \'\\omega\'
-          $progname --equ  -o test \\\\omega
-          $progname --equ -p color '\\textcolor{blue}{\\theta}\'
-          $progname hallo
-          $progname --pic *.eps
+Examples:
+ $progname --equ -o test.eps \'\\omega\'                   Create an omega symbol in test.eps
+ $progname --equ -o test \\\\omega                         Create an omega symbol in '$output.$ending'
+ $progname --equ -p color '\\textcolor{blue}{\\theta}\'    Create a blue theta symbol in '$output.$ending'
+ $progname hallo                                           Create a "hallo" in '$output.$ending'
+ $progname --pic *.eps                                     Combine all eps picture into '$output.$ending'
 
-Report bugs and comments at https://github.com/junghans/gnuplotutils/issues
-                         or junghans\@votca.org
+Report bugs and comments at https://github.com/junghans/gnuplotutils/issues or junghans\@votca.org
 END
 		exit;
 	}
@@ -147,14 +146,19 @@ END
 	}
 	elsif (($ARGV[0] eq "-v") or ($ARGV[0] eq "--version"))
 	{
-		my $version=`perl -ne 'print "\$1\n" if /^#(version .*) --/' $0 | perl -ne 'print if eof'`;
-		chomp($version);
-		print "$progname, $version  by C. Junghans\n";
-		exit;
+  		my $version=`$^X -ne 'print "\$1\n" if /^#version (.*?) --/' $0 | $^X -ne 'print if eof'`;
+  		chomp($version);
+  		print "$progname $version\n\n";
+		system("$^X -ne 'print \$1 if /^# (Copyright.*)/;' $0");
+		print "\nThis is free software: you are free to change and redistribute it.\n";
+		print "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>\n";
+		print "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n";
+		print "Written by C. Junghans <junghans\@votca.org>\n";
+  		exit;
 	}
-	elsif ($ARGV[0] eq "--hg")
+	elsif ($ARGV[0] eq "--vcs")
 	{
-		my $message=`perl -ne 'print "\$1\n" if /^#version .*? -- (.*)\$/' $0 | perl -ne 'print if eof'`;
+  		my $message=`$^X -ne 'print "\$1\n" if /^#version .*? -- (.*)\$/' $0 | $^X -ne 'print if eof'`;
 		chomp($message);
 		print "$progname: $message\n";
 		exit;
@@ -166,7 +170,7 @@ END
 	}
 }
 
-die "${usage}Error: no tex code given\n" unless $#ARGV>-1;
+die "${usage}Error: no tex code given\nHelp with --help\n" unless $#ARGV>-1;
 
 die "What do you want equ or pic mode?\nCheat the text mode with \$something\$ !\n" if ($pic and $equ);
 

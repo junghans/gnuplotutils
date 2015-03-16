@@ -222,9 +222,9 @@ END
 		print "Written by C. Junghans <junghans\@votca.org>\n";
   		exit;
   	}
-  	elsif ($_[0] eq "--hg")
+  	elsif ($_[0] eq "--vcs")
   	{
-  		my $message=`perl -ne 'print "\$1\n" if /^#version .*? -- (.*)\$/' $0 | perl -ne 'print if eof'`;
+  		my $message=`$^X -ne 'print "\$1\n" if /^#version .*? -- (.*)\$/' $0 | $^X -ne 'print if eof'`;
   		chomp($message);
   		print "$progname: $message\n";
   		exit;
@@ -334,7 +334,7 @@ my $s=parse_opts(@ARGV);
 while ($s-- > 0) {shift(@ARGV)};
 
 #Print usage
-die "No file given\n$usage\nHelp with --help" unless $#ARGV > -1;
+die "No file given\n$usage\nHelp with --help\n" unless $#ARGV > -1;
 die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
 print "Using pointsize=$pointsize and gpown=$gpown\n" unless $quiet;

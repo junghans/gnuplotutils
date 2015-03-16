@@ -28,11 +28,11 @@ However this has some disadvantages:
 .IP \[bu]
 the numbers and labels have the same size which look ugly. This problem one could overcome by hacking gnuplot's format option with something like
 .br
-set format x "\etiny %g"
+gnuplot> set format x "\etiny %g"
 .br
 and compensating for the wrong length with
 .br
-set xtics 5 offset 3,0
+gnuplot> set xtics 5 offset 3,0
 .IP \[bu]
 this tex file from gnuplot with the picture environment tend to break with some latex class and journals like APS, usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
 .IP \[bu]
@@ -56,12 +56,12 @@ There essential two ways of doing that the "set size" way (see above) or the use
 To make it as easy for the user as possible, you can forget about "set size" and just use \fB-multi\fR and
 include it without any  scale in your latex file with something like
 .br
-\includegraphics{YYY.eps}
+latex> \includegraphics{YYY.eps}
 
 Internally it uses the size option of the terminal command. It also removed the pdf mark from the target file and adds the psfrag package to the header of the tex file.
 Additionally it can generate dependencies for makefiles.
 .br
-gp2eps --deps file.gp >> Makefile.incl
+shell> gp2eps --deps file.gp >> Makefile.incl
 
 [TRICKS]
 
@@ -69,27 +69,29 @@ As all the gnuplot label and key are interpreted by latex, hence there are certa
 .IP \[bu]
 The names of datafiles in the "plot" command tend to contain underscores (e.g. "data_1_super.d") and gnuplot automatically puts the filename in the key, but latex interprets them afterwards and complains about a missing **$** or something. To overcome this use
 .br
-unset key
+gnuplot> unset key
 .br
 first to find out if there is a problem with underscores and then use
 .br
-plot 'datafile_1.d' t 'some title'
+gnuplot> plot 'datafile_1.d' t 'some title'
 .br
 to avoid the underscores.
 .IP \[bu]
 A very powerful thing one can do is to put a label with latex code, something like
 .br
-set label 2 '\includegraphics[width=6cm]{sketch.eps}' at graph 0.3,graph 0.55
+gnuplot> set label 2 '\includegraphics[width=6cm]{sketch.eps}' at graph 0.3,graph 0.55
 .br
 to put a small sketch picture in the plot.
 
 
 [HISTORY]
 
-When I, Christoph, was at [ITP www.physik.uni-leipzig.de] in Leipzig in 2005, there exist a script called fixpslatex which was doing
+When I, Christoph, worked at ITP (www.physik.uni-leipzig.de)
+in Leipzig in 2005, there exist a script called \fBfixpslatex\fR 
+by Sandro Wenzel, Thomas Vogel, which was doing
 somehow the same thing, based upon gunplot's latex psauxfile terminal.
 First I modified in a way to make it worked with epslatex terminal.
-But when I went to [Mainz www.mpip-mainz.mpg.de] in 2007, it was completely rewritten and I constantly added new options.
+But when I went to MPIP (www.mpip-mainz.mpg.de0 in 2007, it was completely rewritten and I constantly added new options.
 
 In 2009 I first published it outside my groups on googlecode under GPLv2.
 

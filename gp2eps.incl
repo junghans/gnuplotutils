@@ -1,19 +1,22 @@
 [EXAMPLE]
-
 A simple, but nice example plot file would like this:
 
-```
-set title '$\rho$'
+.nf
+set title '$\erho$'
 set xlabel "$x_i$ [nm]"
-set ylabel "$\\theta$ [deg]"
+set ylabel "$\e\etheta$ [deg]"
 
 plot cos(x) w l
-```
+.if
 
-Save it as file.gp and run ``gp2eps file.gp``.  
-Also mind the double backslash, when using double quotes. It works like in shell, 
-in double quotes backslash sequences are interpreted.
-Sometimes this is useful, for ``\n`` or so.
+
+.P
+Save it as file.gp and run "gp2eps file.gp".
+
+.P
+Also mind the double backslash, when using double quotes. 
+It works like in shell, in double quotes backslash sequences are interpreted.
+Sometimes this is useful, for "\en" or so.
 
 [HOW THIS WORKS]
 

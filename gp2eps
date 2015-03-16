@@ -164,7 +164,7 @@ sub parse_opts(@) {
 $usage
 Makes a eps file out of a gnuplot script
 
-Mandatory arguments to long options are mandatory for short options too.
+Options:
  -v, --version          Prints version
      --gversion         Show gnuplot version (may use --gnuplot before)
  -h, --help             Show this help message

@@ -1,6 +1,6 @@
 #! /usr/bin/perl -w
 #
-# C. Junghans
+# Copyright (C) 2005-2015 Christoph Junghans
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ use strict;
 $_=$0;
 s#^.*/##;
 my $progname=$_;
-my $usage="Usage: $progname [OPTIONS] FILE\nHelp with --help";
+my $usage="Usage: $progname [OPTIONS] FILE";
 
 #Defaults
 my $quiet=undef;
@@ -163,45 +163,47 @@ sub parse_opts(@) {
   		print <<END;
 $usage
 Makes a eps file out of a gnuplot script
--v, --version         Prints version
-    --gversion        Show gnuplot version (may use --gnuplot before)
--h, --help            Show this help message
--q, --quiet           Do not show messages
-                      except errors
--p, --pointsize X.X   pointsize of the fonts
-                      default: $pointsize
-    --ratioscale X.X  change the ratio between size of labels
-                      (\\gplabel) and numbers (\\gpnumber)
-                      default: $ratioscale
--w, --width     X.X   width (in cm) of tex docment (use --widthfile if unknown)
-                      default: $width cm (usually columnwidth, for 1 column = textwidth)
--r, --ratio     X.X   ratio of the image (width/heigth)
-                      default: $ratio	   
-    --margin XXX      margin of the images of the image (comma separeted numbers l,r,t,b - empty = auto)
-                      default: auto
-    --multi XXX       This is a multiplot (comma separated number x,y), scales width and heigth
-		      default: $multi[0],$multi[1]	   
-    --widthfile FILE  Get columnwidth from this latex file
--o, --output FILE     give the output filename
-                      default: trunc of 1st gnuplot script
-    --gpown  X.X      give size of additional label '\\gpown'
-                      default: $gpown
-    --termopts OPTS   extra options to be given to '$term'
-                      default: $termopts
-    --view VIEWER     view output with VIEWER at the end
-    --deps            show makefile rule for the eps file (implies --quiet)
-    --adddep FILE     add FILE to dependency rule in --deps
-    --gnuplot CMD     change the gnuplot command
-                      default: "$gnuplot"
-    --force           force overwritting of all intermediate files
-    --debug           keep .tex file for debugging
+
+Mandatory arguments to long options are mandatory for short options too.
+ -v, --version          Prints version
+     --gversion         Show gnuplot version (may use --gnuplot before)
+ -h, --help             Show this help message
+ -q, --quiet            Do not show messages
+                        except errors
+ -p, --pointsize X.X    pointsize of the fonts
+                        default: $pointsize
+     --ratioscale X.X   change the ratio between size of labels
+                        (\\gplabel) and numbers (\\gpnumber)
+                        default: $ratioscale
+ -w, --width X.X        width (in cm) of tex docment (use --widthfile if unknown)
+                        default: $width cm (usually columnwidth, for 1 column = textwidth)
+ -r, --ratio X.X        ratio of the image (width/heigth)
+                        default: $ratio	   
+     --margin XXX       margin of the images of the image (comma separeted numbers l,r,t,b - empty = auto)
+                        default: auto
+     --multi XXX        This is a multiplot (comma separated number x,y), scales width and heigth
+                        default: $multi[0],$multi[1]	   
+     --widthfile FILE   Get columnwidth from this latex file
+ -o, --output FILE      give the output filename
+                        default: trunc of 1st gnuplot script
+     --gpown X.X        give size of additional label '\\gpown'
+                        default: $gpown
+     --termopts OPTS    extra options to be given to '$term'
+                        default: $termopts
+     --view VIEWER      view output with VIEWER at the end
+     --deps             show makefile rule for the eps file (implies --quiet)
+     --adddep FILE      add FILE to dependency rule in --deps
+     --gnuplot CMD      change the gnuplot command
+                        default: "$gnuplot"
+     --force            force overwritting of all intermediate files
+     --debug            keep .tex file for debugging
 
 Axis numbers are always scaled with 0.8 (change with -r option). Additional stuff to scale
 like the graph numbers can be marked with \\gpnumber.  Stuff to scale like labels can be
 marked with \\gplabel. Stuff to scale somehow else can be marked with \\gpown (use --gpown).
+Latex syntax (\$\\something\$) in the labels (and everywhere else) is allowed.
 
-Report bugs and comments at https://github.com/junghans/gnuplotutils/issues
-                         or junghans\@votca.org
+Report bugs and comments at https://github.com/junghans/gnuplotutils/issues or <junghans\@votca.org>
 END
   		exit;
   	}
@@ -216,9 +218,14 @@ END
   	}
   	elsif (($_[0] eq "-v") or ($_[0] eq "--version"))
   	{
-  		my $version=`perl -ne 'print "\$1\n" if /^#(version .*?) --/' $0 | perl -ne 'print if eof'`;
+  		my $version=`$^X -ne 'print "\$1\n" if /^#version (.*?) --/' $0 | $^X -ne 'print if eof'`;
   		chomp($version);
-  		print "$progname, $version  by C. Junghans\n";
+  		print "$progname $version\n\n";
+		system("$^X -ne 'print \$1 if /^# (Copyright.*)/;' $0");
+		print "\nThis is free software: you are free to change and redistribute it.\n";
+		print "License GPLv2+: GNU GPL version 2 or later <http://gnu.org/licenses/gpl2.html>\n";
+		print "There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n";
+		print "Written by C. Junghans <junghans\@votca.org>\n";
   		exit;
   	}
   	elsif ($_[0] eq "--hg")
@@ -333,7 +340,7 @@ my $s=parse_opts(@ARGV);
 while ($s-- > 0) {shift(@ARGV)};
 
 #Print usage
-die "No file given\n$usage\n" unless $#ARGV > -1;
+die "No file given\n$usage\nHelp with --help" unless $#ARGV > -1;
 die "File '$ARGV[0]' does not exist or is not readable\n" unless (-r $ARGV[0]);
 
 print "Using pointsize=$pointsize and gpown=$gpown\n" unless $quiet;

@@ -1,0 +1,244 @@
+Content-type: text/html
+
+<HTML><HEAD><TITLE>Manpage of GP2EPS</TITLE>
+</HEAD><BODY>
+<H1>GP2EPS</H1>
+Section: User Commands (1)<BR>Updated: March 2015<BR><A HREF="#index">Index</A>
+<A HREF="http://localhost/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+gp2eps - manual page for gp2eps 2.3.1,  13.03.15
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+<B>gp2eps</B>
+
+[<I>,OPTIONS/</I>] <I>,FILE/</I>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+Create a eps or pdf file out of a gnuplot plot script
+<A NAME="lbAE">&nbsp;</A>
+<H2>OPTIONS</H2>
+
+<DL COMPACT>
+<DT><B>-v</B>, <B>--version</B><DD>
+Prints version
+<DT><B>--gversion</B><DD>
+Show gnuplot version (may use <B>--gnuplot</B> before)
+<DT><B>-h</B>, <B>--help</B><DD>
+Show this help message
+<DT><B>-q</B>, <B>--quiet</B><DD>
+Do not show messages
+except errors
+<DT><B>-p</B>, <B>--pointsize</B> X.X<DD>
+pointsize of the fonts. The default is 10.
+<DT><B>--ratioscale</B> X.X<DD>
+change the ratio between size of labels (\gplabel) and numbers (\gpnumber)
+The default is 1
+<DT><B>-w</B>, <B>--width</B> X.X<DD>
+width (in cm) of tex docment (use <B>--widthfile</B> if unknown)
+The default is 8.3 cm (usually columnwidth, for 1 column = textwidth)
+<DT><B>-r</B>, <B>--ratio</B> X.X<DD>
+ratio of the image (width/heigth). The default is 1.42857143    
+<DT><B>--margin</B> XXX<DD>
+margin of the images of the image (comma separeted numbers l,r,t,b - empty = auto)
+The default is empty (meaning auto).
+<DT><B>--multi</B> XXX<DD>
+This is a multiplot (comma separated number x,y), scales width and heigth
+The default is &quot;1,1&quot;
+<DT><B>--widthfile</B> FILE<DD>
+Get columnwidth from this latex file
+<DT><B>-o</B>, <B>--output</B> FILE<DD>
+give the output filename. The default is to use the basename of the gnuplot script
+Currently supported output format are eps and pdf.
+<DT><B>--gpown</B> X.X<DD>
+give size of additional label '\gpown'. The default is 10
+<DT><B>--termopts</B> OPTS<DD>
+extra options to be given to 'set terminal epslatex standalone'. The default is 'color'
+<DT><B>--view</B> VIEWER<DD>
+view output with VIEWER at the end
+<DT><B>--deps</B><DD>
+show makefile rule for the eps file (implies <B>--quiet</B>)
+<DT><B>--adddep</B> FILE<DD>
+add FILE to dependency rule in <B>--deps</B>
+<DT><B>--gnuplot</B> CMD<DD>
+change the gnuplot command. The default is &quot;gnuplot&quot;
+<DT><B>--force</B><DD>
+force overwritting of all intermediate files
+<DT><B>--debug</B><DD>
+keep .tex file for debugging
+</DL>
+<P>
+
+Axis numbers are always scaled with 0.8 (change with <B>-r</B> option). Additional stuff to scale
+like the graph numbers can be marked with \gpnumber.  Stuff to scale like labels can be
+marked with \gplabel. Stuff to scale somehow else can be marked with \gpown (use <B>--gpown</B>).
+Latex syntax ($\something$) in the labels (and everywhere else) is allowed.
+<A NAME="lbAF">&nbsp;</A>
+<H2>EXAMPLE</H2>
+
+A simple, but nice example plot file would like this:
+<P>
+<PRE>
+set title '$\rho$'
+set xlabel &quot;$x_i$ [nm]&quot;
+set ylabel &quot;$\\theta$ [deg]&quot;
+
+plot cos(x) w l
+</PRE>
+
+<P>
+Save it as file.gp and run &quot;gp2eps file.gp&quot;.
+<P>
+Also mind the double backslash, when using double quotes. 
+It works like in shell, in double quotes backslash sequences are interpreted.
+Sometimes this is useful, for &quot;\n&quot; or so.
+<A NAME="lbAG">&nbsp;</A>
+<H2>HOW THIS WORKS</H2>
+
+<P>
+To explain how this script actually works one has to understand what gnuplot is doing first.
+It takes a plot script and generates two files. A tex file with all the numbers and label in a picture environment.
+And an eps file with the graphs lines and lines of axis and the tics.
+<P>
+Usually the plot is made in such a way that it can be included with &quot;\include&quot; in an main tex file.
+This would normally work quite nice, except for the case where one has two columns, like in papers.
+Anyway one could still use the gnuplot option &quot;set size 0.5,0.5&quot; to overcome this problem.
+However this has some disadvantages:
+<DL COMPACT>
+<DT>[bu]<DD>
+the numbers and labels have the same size which look ugly. This problem one could overcome by hacking gnuplot's format option with something like
+<BR>
+
+gnuplot&gt; set format x &quot;\tiny %g&quot;
+<BR>
+
+and compensating for the wrong length with
+<BR>
+
+gnuplot&gt; set xtics 5 offset 3,0
+<DT>[bu]<DD>
+this tex file from gnuplot with the picture environment tend to break with some latex class and journals like APS, usually one wants to have a complete figures, so it would be nice to have the figure as an eps.
+<DT>[bu]<DD>
+this wrong length calculation in gnuplot are very tedious, and coming from the fact that e.g. &quot;\theta&quot; counts in gnuplot as 6 letters and in latex as 1.
+<DT>[bu]<DD>
+the bounding boxes of gnuplot are always slightly too big, which one could compensate in latex as well.
+<P>
+<P>
+</DL>
+<P>
+
+So what <B>gp2eps</B> is doing, is nothing more than taking the plot script, generate a tex file out of that (with help of gnuplot)
+and giving the labels and the numbers the &quot;right&quot; size. Then latex is executed and the bounding box is made tight.
+Right size very much depends on what do you want to do and what you think is nice. It normally makes
+<DL COMPACT>
+<DT>[bu]<DD>
+a label footnote size (0.8*fontsize), change this with -f option
+<DT>[bu]<DD>
+a numbers again 80% of the size of the labels, change this with -r option
+<P>
+</DL>
+<P>
+
+The tricky things starts when you want to do half size (one column out of two) plots with the correct fontsize.
+There essential two ways of doing that the &quot;set size&quot; way (see above) or the use of the <B>-multi</B> option.
+To make it as easy for the user as possible, you can forget about &quot;set size&quot; and just use <B>-multi</B> and
+include it without any  scale in your latex file with something like
+<BR>
+
+latex&gt; includegraphics{YYY.eps}
+<P>
+Internally it uses the size option of the terminal command. It also removed the pdf mark from the target file and adds the psfrag package to the header of the tex file.
+Additionally it can generate dependencies for makefiles.
+<BR>
+
+shell&gt; gp2eps --deps file.gp &gt;&gt; Makefile.incl
+<A NAME="lbAH">&nbsp;</A>
+<H2>TRICKS</H2>
+
+<P>
+As all the gnuplot label and key are interpreted by latex, hence there are certain pitfalls and power features. Just to mention one of each:
+<DL COMPACT>
+<DT>[bu]<DD>
+The names of datafiles in the &quot;plot&quot; command tend to contain underscores (e.g. &quot;data_1_super.d&quot;) and gnuplot automatically puts the filename in the key, but latex interprets them afterwards and complains about a missing **$** or something. To overcome this use
+<BR>
+
+gnuplot&gt; unset key
+<BR>
+
+first to find out if there is a problem with underscores and then use
+<BR>
+
+gnuplot&gt; plot 'datafile_1.d' t 'some title'
+<BR>
+
+to avoid the underscores.
+<DT>[bu]<DD>
+A very powerful thing one can do is to put a label with latex code, something like
+<BR>
+
+gnuplot&gt; set label 2 'includegraphics[width=6cm]{sketch.eps}' at graph 0.3,graph 0.55
+<BR>
+
+to put a small sketch picture in the plot.
+</DL>
+<A NAME="lbAI">&nbsp;</A>
+<H2>HISTORY</H2>
+
+<P>
+When I, Christoph, worked at ITP (<A HREF="http://www.physik.uni-leipzig.de">www.physik.uni-leipzig.de</A>)
+in Leipzig in 2005, there exist a script called <B>fixpslatex</B> 
+by Sandro Wenzel, Thomas Vogel, which was doing
+somehow the same thing, based upon gunplot's latex psauxfile terminal.
+First I modified in a way to make it worked with epslatex terminal.
+But when I went to MPIP (<A HREF="http://www.mpip-mainz.mpg.de0">www.mpip-mainz.mpg.de0</A> in 2007, it was completely rewritten and I constantly added new options.
+<P>
+In 2009 I first published it outside my groups on googlecode under GPLv2.
+<P>
+In 2011 I rewrote gp2eps to use the size option instead of rescaling the fonts of the terminal.
+<P>
+In 2015 I added pdf output supported and moved the project to github.
+<A NAME="lbAJ">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Written by C. Junghans &lt;<A HREF="mailto:junghans@votca.org">junghans@votca.org</A>&gt;
+<A NAME="lbAK">&nbsp;</A>
+<H2>REPORTING BUGS</H2>
+
+Report bugs and comments at <A HREF="https://github.com/junghans/gnuplotutils/issues">https://github.com/junghans/gnuplotutils/issues</A> or &lt;<A HREF="mailto:junghans@votca.org">junghans@votca.org</A>&gt;
+<A NAME="lbAL">&nbsp;</A>
+<H2>COPYRIGHT</H2>
+
+Copyright &#169; 2005-2015 Christoph Junghans
+<BR>
+
+This is free software: you are free to change and redistribute it.
+License GPLv2+: GNU GPL version 2 or later &lt;<A HREF="http://gnu.org/licenses/gpl2.html">http://gnu.org/licenses/gpl2.html</A>&gt;
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">OPTIONS</A><DD>
+<DT><A HREF="#lbAF">EXAMPLE</A><DD>
+<DT><A HREF="#lbAG">HOW THIS WORKS</A><DD>
+<DT><A HREF="#lbAH">TRICKS</A><DD>
+<DT><A HREF="#lbAI">HISTORY</A><DD>
+<DT><A HREF="#lbAJ">AUTHOR</A><DD>
+<DT><A HREF="#lbAK">REPORTING BUGS</A><DD>
+<DT><A HREF="#lbAL">COPYRIGHT</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="http://localhost/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 04:41:16 GMT, March 27, 2015
+</BODY>
+</HTML>

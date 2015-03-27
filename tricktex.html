@@ -1,0 +1,103 @@
+Content-type: text/html
+
+<HTML><HEAD><TITLE>Manpage of TRICKTEX</TITLE>
+</HEAD><BODY>
+<H1>TRICKTEX</H1>
+Section: User Commands (1)<BR>Updated: March 2015<BR><A HREF="#index">Index</A>
+<A HREF="http://localhost/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+tricktex - manual page for tricktex 0.6.0, 13.03.15
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+<B>tricktex</B>
+
+[<I>,OPTIONS/</I>] <I>,tex code/</I>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+Make a eps or ps file out of a tex code
+<A NAME="lbAE">&nbsp;</A>
+<H2>OPTIONS</H2>
+
+<DL COMPACT>
+<DT><B>-v</B>, <B>--version</B><DD>
+Prints version
+<DT><B>-h</B>, <B>--help</B><DD>
+Show this help message
+<DT><B>-p</B> NAME<DD>
+Add package
+<DT><B>-o</B>, <B>--output</B> FILE<DD>
+Give the output filename. The default is 'myfile.eps'
+<DT><B>--equ</B><DD>
+Run in equation mode
+<DT><B>--keep</B><DD>
+Do not delete the tex file
+<DT><B>--pic</B><DD>
+Run in Picture mode
+<DT><B>-t</B>, <B>--tight</B><DD>
+tight bounding (uses bbbox_add.pl)
+<DT><B>-w</B>, <B>--width</B> NUMBER<DD>
+Change textwidth of the pictures (implies <B>--pic</B>)
+The default is 1 (*\textwidth)
+<DT><B>-r</B>, <B>--rotate</B><DD>
+rotate pics by 90 degree
+<DT><B>--view</B> VIEWER<DD>
+Run VIEWER at the end
+</DL>
+<A NAME="lbAF">&nbsp;</A>
+<H2>EXAMPLES</H2>
+
+<DL COMPACT>
+<DT>tricktex --equ -o test.eps '\omega'<DD>
+Create an omega symbol in test.eps
+<DT>tricktex --equ -o test \\omega<DD>
+Create an omega symbol in 'myfile.eps'
+<DT>tricktex --equ -p color '\textcolor{blue}{\theta}'<DD>
+Create a blue theta symbol in 'myfile.eps'
+<DT>tricktex hallo<DD>
+Create a &quot;hallo&quot; in 'myfile.eps'
+<DT>tricktex --pic *.eps<DD>
+Combine all eps picture into 'myfile.eps'
+</DL>
+<A NAME="lbAG">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Written by C. Junghans &lt;<A HREF="mailto:junghans@votca.org">junghans@votca.org</A>&gt;
+<A NAME="lbAH">&nbsp;</A>
+<H2>REPORTING BUGS</H2>
+
+Report bugs and comments at <A HREF="https://github.com/junghans/gnuplotutils/issues">https://github.com/junghans/gnuplotutils/issues</A> or <A HREF="mailto:junghans@votca.org">junghans@votca.org</A>
+<A NAME="lbAI">&nbsp;</A>
+<H2>COPYRIGHT</H2>
+
+Copyright &#169; 2007-2015 Christoph Junghans
+<BR>
+
+This is free software: you are free to change and redistribute it.
+License GPLv2+: GNU GPL version 2 or later &lt;<A HREF="http://gnu.org/licenses/gpl2.html">http://gnu.org/licenses/gpl2.html</A>&gt;
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+<P>
+
+<HR>
+<A NAME="index">&nbsp;</A><H2>Index</H2>
+<DL>
+<DT><A HREF="#lbAB">NAME</A><DD>
+<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
+<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
+<DT><A HREF="#lbAE">OPTIONS</A><DD>
+<DT><A HREF="#lbAF">EXAMPLES</A><DD>
+<DT><A HREF="#lbAG">AUTHOR</A><DD>
+<DT><A HREF="#lbAH">REPORTING BUGS</A><DD>
+<DT><A HREF="#lbAI">COPYRIGHT</A><DD>
+</DL>
+<HR>
+This document was created by
+<A HREF="http://localhost/cgi-bin/man/man2html">man2html</A>,
+using the manual pages.<BR>
+Time: 04:41:16 GMT, March 27, 2015
+</BODY>
+</HTML>

@@ -1,103 +1,217 @@
-Content-type: text/html
+<!-- Creator     : groff version 1.22.2 -->
+<!-- CreationDate: Fri Mar 27 10:14:32 2015 -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta name="generator" content="groff -Thtml, see www.gnu.org">
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<meta name="Content-Style" content="text/css">
+<style type="text/css">
+       p       { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       pre     { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       table   { margin-top: 0; margin-bottom: 0; vertical-align: top }
+       h1      { text-align: center }
+</style>
+<title>TRICKTEX</title>
 
-<HTML><HEAD><TITLE>Manpage of TRICKTEX</TITLE>
-</HEAD><BODY>
-<H1>TRICKTEX</H1>
-Section: User Commands (1)<BR>Updated: March 2015<BR><A HREF="#index">Index</A>
-<A HREF="http://localhost/cgi-bin/man/man2html">Return to Main Contents</A><HR>
+</head>
+<body>
 
-<A NAME="lbAB">&nbsp;</A>
-<H2>NAME</H2>
+<h1 align="center">TRICKTEX</h1>
 
-tricktex - manual page for tricktex 0.6.0, 13.03.15
-<A NAME="lbAC">&nbsp;</A>
-<H2>SYNOPSIS</H2>
+<a href="#NAME">NAME</a><br>
+<a href="#SYNOPSIS">SYNOPSIS</a><br>
+<a href="#DESCRIPTION">DESCRIPTION</a><br>
+<a href="#OPTIONS">OPTIONS</a><br>
+<a href="#EXAMPLES">EXAMPLES</a><br>
+<a href="#AUTHOR">AUTHOR</a><br>
+<a href="#REPORTING BUGS">REPORTING BUGS</a><br>
+<a href="#COPYRIGHT">COPYRIGHT</a><br>
 
-<B>tricktex</B>
+<hr>
 
-[<I>,OPTIONS/</I>] <I>,tex code/</I>
-<A NAME="lbAD">&nbsp;</A>
-<H2>DESCRIPTION</H2>
 
-Make a eps or ps file out of a tex code
-<A NAME="lbAE">&nbsp;</A>
-<H2>OPTIONS</H2>
+<h2>NAME
+<a name="NAME"></a>
+</h2>
 
-<DL COMPACT>
-<DT><B>-v</B>, <B>--version</B><DD>
-Prints version
-<DT><B>-h</B>, <B>--help</B><DD>
-Show this help message
-<DT><B>-p</B> NAME<DD>
-Add package
-<DT><B>-o</B>, <B>--output</B> FILE<DD>
-Give the output filename. The default is 'myfile.eps'
-<DT><B>--equ</B><DD>
-Run in equation mode
-<DT><B>--keep</B><DD>
-Do not delete the tex file
-<DT><B>--pic</B><DD>
-Run in Picture mode
-<DT><B>-t</B>, <B>--tight</B><DD>
-tight bounding (uses bbbox_add.pl)
-<DT><B>-w</B>, <B>--width</B> NUMBER<DD>
-Change textwidth of the pictures (implies <B>--pic</B>)
-The default is 1 (*\textwidth)
-<DT><B>-r</B>, <B>--rotate</B><DD>
-rotate pics by 90 degree
-<DT><B>--view</B> VIEWER<DD>
-Run VIEWER at the end
-</DL>
-<A NAME="lbAF">&nbsp;</A>
-<H2>EXAMPLES</H2>
 
-<DL COMPACT>
-<DT>tricktex --equ -o test.eps '\omega'<DD>
-Create an omega symbol in test.eps
-<DT>tricktex --equ -o test \\omega<DD>
-Create an omega symbol in 'myfile.eps'
-<DT>tricktex --equ -p color '\textcolor{blue}{\theta}'<DD>
-Create a blue theta symbol in 'myfile.eps'
-<DT>tricktex hallo<DD>
-Create a &quot;hallo&quot; in 'myfile.eps'
-<DT>tricktex --pic *.eps<DD>
-Combine all eps picture into 'myfile.eps'
-</DL>
-<A NAME="lbAG">&nbsp;</A>
-<H2>AUTHOR</H2>
+<p style="margin-left:11%; margin-top: 1em">tricktex
+&minus; manual page for tricktex 0.6.0, 13.03.15</p>
 
-Written by C. Junghans &lt;<A HREF="mailto:junghans@votca.org">junghans@votca.org</A>&gt;
-<A NAME="lbAH">&nbsp;</A>
-<H2>REPORTING BUGS</H2>
+<h2>SYNOPSIS
+<a name="SYNOPSIS"></a>
+</h2>
 
-Report bugs and comments at <A HREF="https://github.com/junghans/gnuplotutils/issues">https://github.com/junghans/gnuplotutils/issues</A> or <A HREF="mailto:junghans@votca.org">junghans@votca.org</A>
-<A NAME="lbAI">&nbsp;</A>
-<H2>COPYRIGHT</H2>
 
-Copyright &#169; 2007-2015 Christoph Junghans
-<BR>
 
-This is free software: you are free to change and redistribute it.
-License GPLv2+: GNU GPL version 2 or later &lt;<A HREF="http://gnu.org/licenses/gpl2.html">http://gnu.org/licenses/gpl2.html</A>&gt;
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-<P>
+<p style="margin-left:11%; margin-top: 1em"><b>tricktex</b>
+[<i>OPTIONS</i>] <i>tex code</i></p>
 
-<HR>
-<A NAME="index">&nbsp;</A><H2>Index</H2>
-<DL>
-<DT><A HREF="#lbAB">NAME</A><DD>
-<DT><A HREF="#lbAC">SYNOPSIS</A><DD>
-<DT><A HREF="#lbAD">DESCRIPTION</A><DD>
-<DT><A HREF="#lbAE">OPTIONS</A><DD>
-<DT><A HREF="#lbAF">EXAMPLES</A><DD>
-<DT><A HREF="#lbAG">AUTHOR</A><DD>
-<DT><A HREF="#lbAH">REPORTING BUGS</A><DD>
-<DT><A HREF="#lbAI">COPYRIGHT</A><DD>
-</DL>
-<HR>
-This document was created by
-<A HREF="http://localhost/cgi-bin/man/man2html">man2html</A>,
-using the manual pages.<BR>
-Time: 04:41:16 GMT, March 27, 2015
-</BODY>
-</HTML>
+<h2>DESCRIPTION
+<a name="DESCRIPTION"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Make a eps or
+ps file out of a tex code</p>
+
+<h2>OPTIONS
+<a name="OPTIONS"></a>
+</h2>
+
+
+
+<p style="margin-left:11%; margin-top: 1em"><b>&minus;v</b>,
+<b>&minus;&minus;version</b></p>
+
+<p style="margin-left:22%;">Prints version</p>
+
+<p style="margin-left:11%;"><b>&minus;h</b>,
+<b>&minus;&minus;help</b></p>
+
+<p style="margin-left:22%;">Show this help message</p>
+
+<p style="margin-left:11%;"><b>&minus;p</b> NAME</p>
+
+<p style="margin-left:22%;">Add package</p>
+
+<p style="margin-left:11%;"><b>&minus;o</b>,
+<b>&minus;&minus;output</b> FILE</p>
+
+<p style="margin-left:22%;">Give the output filename. The
+default is &rsquo;myfile.eps&rsquo;</p>
+
+<table width="100%" border="0" rules="none" frame="void"
+       cellspacing="0" cellpadding="0">
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>&minus;&minus;equ</b></p></td>
+<td width="2%"></td>
+<td width="40%">
+
+
+<p>Run in equation mode</p></td>
+<td width="38%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>&minus;&minus;keep</b></p></td>
+<td width="2%"></td>
+<td width="40%">
+
+
+<p>Do not delete the tex file</p></td>
+<td width="38%">
+</td></tr>
+<tr valign="top" align="left">
+<td width="11%"></td>
+<td width="9%">
+
+
+<p><b>&minus;&minus;pic</b></p></td>
+<td width="2%"></td>
+<td width="40%">
+
+
+<p>Run in Picture mode</p></td>
+<td width="38%">
+</td></tr>
+</table>
+
+<p style="margin-left:11%;"><b>&minus;t</b>,
+<b>&minus;&minus;tight</b></p>
+
+<p style="margin-left:22%;">tight bounding (uses
+bbbox_add.pl)</p>
+
+<p style="margin-left:11%;"><b>&minus;w</b>,
+<b>&minus;&minus;width</b> NUMBER</p>
+
+<p style="margin-left:22%;">Change textwidth of the
+pictures (implies <b>&minus;&minus;pic</b>) The default is 1
+(*\textwidth)</p>
+
+<p style="margin-left:11%;"><b>&minus;r</b>,
+<b>&minus;&minus;rotate</b></p>
+
+<p style="margin-left:22%;">rotate pics by 90 degree</p>
+
+<p style="margin-left:11%;"><b>&minus;&minus;view</b>
+VIEWER</p>
+
+<p style="margin-left:22%;">Run VIEWER at the end</p>
+
+<h2>EXAMPLES
+<a name="EXAMPLES"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">tricktex
+&minus;&minus;equ &minus;o test.eps &rsquo;\omega&rsquo;</p>
+
+<p style="margin-left:22%;">Create an omega symbol in
+test.eps</p>
+
+<p style="margin-left:11%;">tricktex &minus;&minus;equ
+&minus;o test \\omega</p>
+
+<p style="margin-left:22%;">Create an omega symbol in
+&rsquo;myfile.eps&rsquo;</p>
+
+<p style="margin-left:11%;">tricktex &minus;&minus;equ
+&minus;p color &rsquo;\textcolor{blue}{\theta}&rsquo;</p>
+
+<p style="margin-left:22%;">Create a blue theta symbol in
+&rsquo;myfile.eps&rsquo;</p>
+
+<p style="margin-left:11%;">tricktex hallo</p>
+
+<p style="margin-left:22%;">Create a &quot;hallo&quot; in
+&rsquo;myfile.eps&rsquo;</p>
+
+<p style="margin-left:11%;">tricktex &minus;&minus;pic
+*.eps</p>
+
+<p style="margin-left:22%;">Combine all eps picture into
+&rsquo;myfile.eps&rsquo;</p>
+
+<h2>AUTHOR
+<a name="AUTHOR"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Written by C.
+Junghans &lt;junghans@votca.org&gt;</p>
+
+<h2>REPORTING BUGS
+<a name="REPORTING BUGS"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Report bugs and
+comments at https://github.com/junghans/gnuplotutils/issues
+or junghans@votca.org</p>
+
+<h2>COPYRIGHT
+<a name="COPYRIGHT"></a>
+</h2>
+
+
+<p style="margin-left:11%; margin-top: 1em">Copyright
+&copy; 2007&minus;2015 Christoph Junghans <br>
+This is free software: you are free to change and
+redistribute it. License GPLv2+: GNU GPL version 2 or later
+&lt;http://gnu.org/licenses/gpl2.html&gt; There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.</p>
+<hr>
+</body>
+</html>

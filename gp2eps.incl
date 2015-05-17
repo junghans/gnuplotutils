@@ -97,4 +97,4 @@ In 2009 I first published it outside my groups on googlecode under GPLv2.
 
 In 2011 I rewrote gp2eps to use the size option instead of rescaling the fonts of the terminal.
 
-In 2015 I added pdf output supported and moved the project to github.
+In 2015 I added pdf output support and moved the project to github.

@@ -8,11 +8,11 @@
 
 ##[gp2eps](http://junghans.github.io/gnuplotutils/gp2eps.html)
 * Convert gnuplot script to eps quickly using LaTeX: `gp2eps plot.gp`
-* Allows to scale numbers different than labels: `gp2eps --ratioscale X.X plot.gp`
+* Allows to scale numbers different than labels: `gp2eps --ratioscale 1.2 plot.gp`
 * Flexible font size: `gp2eps -p 12 plot.gp`
 
 ##[tricktex](http://junghans.github.io/gnuplotutils/tricktex.html)
-* Take many eps pics and make an pdf: `tricktex --pic *.eps`
+* Take many eps pics and create a pdf: `tricktex --pic *.eps`
 * Text to eps: `tricktex 'A text'`
 * Formulars to eps: `tricktex --equ '\omega'`
 
